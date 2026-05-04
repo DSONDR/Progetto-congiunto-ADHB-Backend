@@ -20,3 +20,6 @@ buildNumber.properties
 # Log e sistema
 *.log
 .DS_Store
+
+#Gradle
+.gradle/
