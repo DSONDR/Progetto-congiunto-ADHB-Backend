@@ -1,7 +1,7 @@
-package it.unife.sample.backend.controller; // Cartella controller
+package it.unife.sample.backend.controller;
 
-// Devi importare sia il Model che il Repository
 import it.unife.sample.backend.model.Squadra;
+import it.unife.sample.backend.model.Atleta;
 import it.unife.sample.backend.service.SquadraService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -22,7 +22,7 @@ public class SquadraController {
 
     @GetMapping("/{id}")
     public ResponseEntity<Squadra> getById(@PathVariable Long id) {
-        Optional<Squadra> squadra = service.findById(id);
+	Optional<Squadra> squadra = service.findById(id);
         return squadra.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
     }
 
@@ -36,7 +36,7 @@ public class SquadraController {
         if (!service.findById(id).isPresent()) {
             return ResponseEntity.notFound().build();
         }
-        utente.setCodiceFiscale(id); //Imposta il CF come ID
+        squadra.setId(id);
         return ResponseEntity.ok(service.save(squadra));
     }
 
@@ -48,7 +48,7 @@ public class SquadraController {
         service.deleteById(id);
         return ResponseEntity.noContent().build();
     }
- 
+
     @GetMapping("/per-allenatore/{cf}")
     public List<Squadra> findByAllenatoreCf(@PathVariable String cf) {
         return service.findByAllenatoreCf(cf);
@@ -58,14 +58,13 @@ public class SquadraController {
     public List<Squadra> findByAtletaCf(@PathVariable String cf) {
         return service.findByAtletaCf(cf);
     }
-    
-    // URL: POST /api/squadre/id/atleti/RSSMRA80...
+
     @PostMapping("/{id}/atleti/{atletaCf}")
     public ResponseEntity<Void> addAtleta(@PathVariable Long id, @PathVariable String atletaCf) {
         service.aggiungiAtletaASquadra(id, atletaCf);
-        return ResponseEntity.ok().build();	//Se è okay non ritorno tutto ma solo il codice 200
+        return ResponseEntity.ok().build();
     }
-    
+
     //Ottengo tutti gli atleti di una squadra   
     @GetMapping("/{id}/atleti")
     public List<Atleta> getAtleti(@PathVariable Long id) {

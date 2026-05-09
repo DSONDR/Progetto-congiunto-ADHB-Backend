@@ -21,10 +21,11 @@ public class AtletaController {
         return service.findAll();
     }
 
-    @GetMapping("/{id}")
-    public ResponseEntity<Atleta> getById(@PathVariable String id) { // String, non UUID
-        Optional<Atleta> atleta = service.findById(id);
-        return atleta.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
+    @GetMapping("/{cf}")
+    public ResponseEntity<Atleta> getByCf(@PathVariable String cf) {
+        return service.findById(cf)
+                .map(ResponseEntity::ok)
+                .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
     @PostMapping
@@ -32,21 +33,21 @@ public class AtletaController {
         return service.save(atleta);
     }
 
-    @PutMapping("/{id}")
-    public ResponseEntity<Atleta> update(@PathVariable String id, @RequestBody Atleta atleta) {
-        if (!service.findById(id).isPresent()) {
+    @PutMapping("/{cf}")
+    public ResponseEntity<Atleta> update(@PathVariable String cf, @RequestBody Atleta atleta) {
+        if (!service.findById(cf).isPresent()) {
             return ResponseEntity.notFound().build();
         }
-        atleta.setCodiceFiscale(id); //Imposta il CF come ID
+        atleta.setCf(cf);
         return ResponseEntity.ok(service.save(atleta));
     }
 
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Void> delete(@PathVariable String id) {
-        if (!service.findById(id).isPresent()) {
+    @DeleteMapping("/{cf}")
+    public ResponseEntity<Void> delete(@PathVariable String cf) {
+        if (!service.findById(cf).isPresent()) {
             return ResponseEntity.notFound().build();
         }
-        service.deleteById(id);
+        service.deleteById(cf);
         return ResponseEntity.noContent().build();
     }
 }

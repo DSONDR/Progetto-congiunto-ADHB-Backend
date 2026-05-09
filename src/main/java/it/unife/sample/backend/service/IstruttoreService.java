@@ -21,7 +21,7 @@ public class IstruttoreService {
     }
 
     public Istruttore save(Istruttore istruttore) {
-        return repository.save(Istruttore);
+        return repository.save(istruttore);
     }
 
     public void deleteById(String id) {

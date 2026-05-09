@@ -4,6 +4,8 @@ import it.unife.sample.backend.model.Allenatore;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
+
 @Repository
 public interface AllenatoreRepository extends JpaRepository<Allenatore, String> {
 

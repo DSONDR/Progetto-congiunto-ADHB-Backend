@@ -4,7 +4,8 @@ import jakarta.persistence.*;
 import lombok.*;
 
 @Entity
-@Table(name = "atleti")
+@Table(name = "atleta")
+@PrimaryKeyJoinColumn(name = "cf")
 @Data
 @EqualsAndHashCode(callSuper = true)
 public class Atleta extends Utente {

@@ -15,16 +15,17 @@ public class AllenatoreController {
     @Autowired
     private AllenatoreService service;
     
-    //CRUD id univoco
+    //CRUD cf univoco
     @GetMapping
     public List<Allenatore> getAll() {
         return service.findAll();
     }
 
-    @GetMapping("/{id}")
-    public ResponseEntity<Allenatore> getById(@PathVariable String id) { // String, non UUID
-        Optional<Allenatore> allenatore = service.findById(id);
-        return allenatore.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
+    @GetMapping("/{cf}")
+    public ResponseEntity<Allenatore> getByCf(@PathVariable String cf) {
+        return service.findById(cf)
+                .map(ResponseEntity::ok)
+                .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
     @PostMapping
@@ -32,21 +33,21 @@ public class AllenatoreController {
         return service.save(allenatore);
     }
 
-    @PutMapping("/{id}")
-    public ResponseEntity<Allenatore> update(@PathVariable String id, @RequestBody Allenatore allenatore) {
-        if (!service.findById(id).isPresent()) {
+    @PutMapping("/{cf}")
+    public ResponseEntity<Allenatore> update(@PathVariable String cf, @RequestBody Allenatore allenatore) {
+        if (!service.findById(cf).isPresent()) {
             return ResponseEntity.notFound().build();
         }
-        allenatore.setCodiceFiscale(id); //Imposta il CF come ID
+        allenatore.setCf(cf);
         return ResponseEntity.ok(service.save(allenatore));
     }
 
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Void> delete(@PathVariable String id) {
-        if (!service.findById(id).isPresent()) {
+    @DeleteMapping("/{cf}")
+    public ResponseEntity<Void> delete(@PathVariable String cf) {
+        if (!service.findById(cf).isPresent()) {
             return ResponseEntity.notFound().build();
         }
-        service.deleteById(id);
+        service.deleteById(cf);
         return ResponseEntity.noContent().build();
     }
     
@@ -59,7 +60,7 @@ public class AllenatoreController {
     //Ricerca allenatore tra due gradi, URL: /api/allenatori/filter?min=#&max=#
     @GetMapping("/filter")
     public List<Allenatore> getByGradoBetween(@RequestParam Integer min, @RequestParam Integer max){
-        return service.findByGradoBetween(min, max);	//Devono chiamarsi diverso? Come decido la parola dell'api?
+        return service.findByGradoBetween(min, max);
     }
  
     

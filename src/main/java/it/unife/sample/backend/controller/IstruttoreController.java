@@ -1,6 +1,5 @@
-package it.unife.sample.backend.controller; // Cartella controller
+package it.unife.sample.backend.controller;
 
-// Devi importare sia il Model che il Repository
 import it.unife.sample.backend.model.Istruttore;
 import it.unife.sample.backend.service.IstruttoreService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,10 +19,11 @@ public class IstruttoreController {
         return service.findAll();
     }
 
-    @GetMapping("/{id}")
-    public ResponseEntity<Istruttore> getById(@PathVariable String id) { // String, non UUID
-        Optional<Istruttore> istruttore = service.findById(id);
-        return istruttore.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
+    @GetMapping("/{cf}")
+    public ResponseEntity<Istruttore> getByCf(@PathVariable String cf) {
+        return service.findById(cf)
+                .map(ResponseEntity::ok)
+                .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
     @PostMapping
@@ -31,21 +31,21 @@ public class IstruttoreController {
         return service.save(istruttore);
     }
 
-    @PutMapping("/{id}")
-    public ResponseEntity<Istruttore> update(@PathVariable String id, @RequestBody Istruttore istruttore) {
-        if (!service.findById(id).isPresent()) {
+    @PutMapping("/{cf}")
+    public ResponseEntity<Istruttore> update(@PathVariable String cf, @RequestBody Istruttore istruttore) {
+        if (!service.findById(cf).isPresent()) {
             return ResponseEntity.notFound().build();
         }
-        istruttore.setCodiceFiscale(id); //Imposta il CF come ID
+        istruttore.setCf(cf);
         return ResponseEntity.ok(service.save(istruttore));
     }
 
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Void> delete(@PathVariable String id) {
-        if (!service.findById(id).isPresent()) {
+    @DeleteMapping("/{cf}")
+    public ResponseEntity<Void> delete(@PathVariable String cf) {
+        if (!service.findById(cf).isPresent()) {
             return ResponseEntity.notFound().build();
         }
-        service.deleteById(id);
+        service.deleteById(cf);
         return ResponseEntity.noContent().build();
     }
 }

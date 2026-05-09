@@ -21,7 +21,7 @@ public class UtenteController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Utente> getById(@PathVariable String id) { // String, non UUID
+    public ResponseEntity<Utente> getById(@PathVariable String id) {
         Optional<Utente> utente = service.findById(id);
         return utente.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
     }
@@ -33,10 +33,12 @@ public class UtenteController {
 
     @PutMapping("/{id}")
     public ResponseEntity<Utente> update(@PathVariable String id, @RequestBody Utente utente) {
+
         if (!service.findById(id).isPresent()) {
             return ResponseEntity.notFound().build();
         }
-        utente.setCodiceFiscale(id); //Imposta il CF come ID
+
+        utente.setCf(id);
         return ResponseEntity.ok(service.save(utente));
     }
 
@@ -47,5 +49,10 @@ public class UtenteController {
         }
         service.deleteById(id);
         return ResponseEntity.noContent().build();
+    }
+    
+    @GetMapping("/username/{username}")
+    public Utente findByUsername(@PathVariable String username) {
+        return service.findByUsername(username).orElse(null);
     }
 }

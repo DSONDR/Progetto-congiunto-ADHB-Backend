@@ -31,7 +31,7 @@ public class AllenatoreService {
         repository.deleteById(id);
     }
     
-    //Trova allenatori con certo id
+    //Trova allenatori con certo grado
     public List<Allenatore> findByGrado(Integer grado){
     	return repository.findByGrado(grado);    
     }

@@ -9,8 +9,9 @@ import it.unife.sample.backend.repository.UtenteRepository;
 
 @Service
 public class UtenteService {
-     @Autowired
+    @Autowired
     private UtenteRepository repository;
+
 
     public List<Utente> findAll() {
         return repository.findAll();
@@ -26,5 +27,9 @@ public class UtenteService {
 
     public void deleteById(String id) {
         repository.deleteById(id);
+    }
+    
+    public Optional<Utente> findByUsername(String username) {
+        return repository.findByUsername(username);
     }
 }
