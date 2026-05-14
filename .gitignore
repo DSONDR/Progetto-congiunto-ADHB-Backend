@@ -21,6 +21,28 @@ buildNumber.properties
 *.log
 .DS_Store
 
-#Altro
+# Gradle
 .gradle/
-/build/
+build/
+bin/
+/out/
+
+# Docker
+.env
+.env.local
+# Se docker-compose monta volumi in cartelle locali, escludile:
+data/
+pgdata/
+
+# Python (per patch_controllers.py)
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Windows / OS temporanei
+Thumbs.db
+desktop.ini
+
+# --- Python (per patch_controllers.py) ---
+__pycache__/
+*.pyc

@@ -1,34 +1,41 @@
 package it.unife.sample.backend.model;
 
 import jakarta.persistence.*;
-import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
-import java.time.LocalDateTime;
+import java.time.LocalDate;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
 
 @Entity
+@Table(name = "USA_ABB")
+@IdClass(UsaAbbId.class)
 @Data
-@Table(name = "usa_abbonamento")
 @NoArgsConstructor
 @AllArgsConstructor
 public class UsaAbb {
     @Id
-    @Column(nullable = false, unique = true)
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
-
-    @NotNull(message = "Id-sottoscrizione obbligatorio")
     @ManyToOne
-    @JoinColumn(name = "id_sottoscrizione")
-    private Sottoscrizione sottoscrizione;
+    @JoinColumn(name = "Numero_Abb")
+    @NotNull
+    private Abbonamento abbonamento;
 
-    @NotNull(message = "id-attività obbligatorio")
+    @Id
     @ManyToOne
-    @JoinColumn(name = "id_attivita")
+    @JoinColumn(name = "Codice_Att")
+    @NotNull
     private Attivita attivita;
 
-    @NotNull(message = "Orario obbligatorio")
-    private LocalDateTime dataUtilizzo = LocalDateTime.now();
+    @Id
+    @ManyToOne
+    @JoinColumn(name = "Cf")
+    @NotNull
+    private Utente utente;
+
+    @Column(name = "Data_Uso")
+    @NotNull
+    private LocalDate dataUso;
+
+    @Column(name = "Qr_Code")
+    private String qrCode;
 }

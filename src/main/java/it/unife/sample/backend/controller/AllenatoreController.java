@@ -54,13 +54,14 @@ public class AllenatoreController {
     
     //Ricerca allenatore per grado, URL: /api/allenatori/search?grado=#
     @GetMapping("/search")
-    public List<Allenatore> getByGrado(@RequestParam Integer grado){
+    public List<Allenatore> getByGrado(@RequestParam String grado){
  	return service.findByGrado(grado);   
     }    
-    //Ricerca allenatore tra due gradi, URL: /api/allenatori/filter?min=#&max=#
+    
+    //Filtro allenatori tra due gradi, URL: /api/allenatori/filter?minGrado=#&maxGrado=#
     @GetMapping("/filter")
     public List<Allenatore> getByGradoBetween(@RequestParam Integer min, @RequestParam Integer max){
-        return service.findByGradoBetween(min, max);
+ 	return service.findByGradoBetween(min, max);   
     }
  
     

@@ -23,7 +23,7 @@ public class SponsorController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Sponsor> getById(@PathVariable Long id) {
+    public ResponseEntity<Sponsor> getById(@PathVariable String id) {
         Optional<Sponsor> sponsor = service.findById(id);
         return sponsor.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
     }
@@ -34,18 +34,18 @@ public class SponsorController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Sponsor> update(@PathVariable Long id, @RequestBody Sponsor sponsor) {
+    public ResponseEntity<Sponsor> update(@PathVariable String id, @RequestBody Sponsor sponsor) {
 
         if (!service.findById(id).isPresent()) {
             return ResponseEntity.notFound().build();
         }
 
-        sponsor.setId(id);
+        sponsor.setPIva(id);
         return ResponseEntity.ok(service.save(sponsor));
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> delete(@PathVariable Long id) {
+    public ResponseEntity<Void> delete(@PathVariable String id) {
 
         if (!service.findById(id).isPresent()) {
             return ResponseEntity.notFound().build();
@@ -71,7 +71,7 @@ public class SponsorController {
 
     // Associa uno sponsor a una squadra
     @PostMapping("/{id}/squadre/{idSquadra}")
-    public ResponseEntity<Void> addSquadra(@PathVariable Long id, @PathVariable Long idSquadra) {
+    public ResponseEntity<Void> addSquadra(@PathVariable String id, @PathVariable Long idSquadra) {
 
         service.aggiungiSponsorASquadra(id, idSquadra);
         return ResponseEntity.ok().build();
@@ -79,7 +79,7 @@ public class SponsorController {
 
     // Ottengo tutte le squadre sponsorizzate
     @GetMapping("/{id}/squadre")
-    public List<Squadra> getSquadre(@PathVariable Long id) {
+    public List<Squadra> getSquadre(@PathVariable String id) {
 
         return service.getSquadreBySponsor(id);
     }
@@ -89,7 +89,7 @@ public class SponsorController {
 
     // Associa uno sponsor a un impianto
     @PostMapping("/{id}/impianti/{idImpianto}")
-    public ResponseEntity<Void> addImpianto(@PathVariable Long id,
+    public ResponseEntity<Void> addImpianto(@PathVariable String id,
                                             @PathVariable Long idImpianto) {
 
         service.aggiungiSponsorAImpianto(id, idImpianto);
@@ -99,7 +99,7 @@ public class SponsorController {
 
     // Ottengo tutti gli impianti sponsorizzati
     @GetMapping("/{id}/impianti")
-    public List<Impianto> getImpianti(@PathVariable Long id) {
+    public List<Impianto> getImpianti(@PathVariable String id) {
 
         return service.getImpiantiBySponsor(id);
     }

@@ -1,40 +1,35 @@
 package it.unife.sample.backend.model;
 
 import jakarta.persistence.*;
-import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
-import it.unife.sample.backend.model.Utente;
-import it.unife.sample.backend.model.Abbonamento;
-import it.unife.sample.backend.model.Pagamento;
 
 @Entity
+@Table(name = "SOTTOSCRIVE")
+@IdClass(SottoscrizioneId.class)
 @Data
-@Table(name = "sottoscrive")
 @NoArgsConstructor
 @AllArgsConstructor
 public class Sottoscrizione {
     @Id
-    @Column(nullable = false, unique = true)
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
-    
-    @NotNull(message = "Cf-utente obbligatorio")
     @ManyToOne
-    @JoinColumn(name = "cf")
-    private Utente utente;
-
-    @NotNull(message = "Id-abbonamento obbligatorio")
-    @ManyToOne
-    @JoinColumn(name = "id_abbonamento")
+    @JoinColumn(name = "Numero_Abb")
+    @NotNull
     private Abbonamento abbonamento;
 
-    @NotNull(message = "Id-pagamento obbligatorio")
-    @OneToOne(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
-    @JoinColumn(name = "id_pagamento")
+    @Id
+    @OneToOne
+    @JoinColumn(name = "Id_Pagamento")
+    @NotNull
     private Pagamento pagamento;
+
+    @Id
+    @ManyToOne
+    @JoinColumn(name = "Cf")
+    @NotNull
+    private Atleta atleta;
 }
 
 

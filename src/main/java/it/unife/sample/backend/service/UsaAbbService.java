@@ -8,6 +8,7 @@ import org.springframework.transaction.annotation.Transactional;
 import it.unife.sample.backend.model.Attivita;
 import it.unife.sample.backend.model.Sottoscrizione;
 import it.unife.sample.backend.model.UsaAbb;
+import it.unife.sample.backend.model.UsaAbbId;
 import it.unife.sample.backend.repository.SottoscrizioneRepository;
 import it.unife.sample.backend.repository.UsaAbbRepository;
 
@@ -21,7 +22,7 @@ public class UsaAbbService {
         return usaRepo.findAll();
     }
 
-    public Optional<UsaAbb> findById(Long id) {
+    public Optional<UsaAbb> findById(UsaAbbId id) {
         return usaRepo.findById(id);
     }
 
@@ -31,7 +32,7 @@ public class UsaAbbService {
     }
 
     @Transactional
-    public void deleteById(Long id) {
+    public void deleteById(UsaAbbId id) {
         usaRepo.deleteById(id);
     }
     

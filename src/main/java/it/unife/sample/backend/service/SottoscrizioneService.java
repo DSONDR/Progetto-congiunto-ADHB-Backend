@@ -7,9 +7,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import it.unife.sample.backend.model.Sottoscrizione;
+import it.unife.sample.backend.model.Atleta;
 import it.unife.sample.backend.model.Utente;
 import it.unife.sample.backend.model.Abbonamento;
 import it.unife.sample.backend.model.Pagamento;
+import it.unife.sample.backend.model.SottoscrizioneId;
 import it.unife.sample.backend.repository.SottoscrizioneRepository;
 import it.unife.sample.backend.repository.PagamentoRepository;
 
@@ -25,7 +27,7 @@ public class SottoscrizioneService {
         return sottRepo.findAll();
     }
 
-    public Optional<Sottoscrizione> findById(Long id) {
+    public Optional<Sottoscrizione> findById(SottoscrizioneId id) {
         return sottRepo.findById(id);
     }
 
@@ -33,7 +35,7 @@ public class SottoscrizioneService {
         return sottRepo.save(sottoscrizione);
     }
 
-    public void deleteById(Long id) {
+    public void deleteById(SottoscrizioneId id) {
         sottRepo.deleteById(id);
     }
 
@@ -41,6 +43,10 @@ public class SottoscrizioneService {
     //Sottoscrizione
     @Transactional
     public Sottoscrizione sottoscrivi(Utente utente, Abbonamento abb, String metodo) {
+        if (!(utente instanceof Atleta atleta)) {
+            throw new IllegalArgumentException("Solo gli atleti possono sottoscrivere un abbonamento");
+        }
+
         // 1. Pagamento
         Pagamento p = new Pagamento();
         p.setImporto(0.0); // Calcola il prezzo dell'abbonamento se disponibile
@@ -50,7 +56,7 @@ public class SottoscrizioneService {
 
         // 2. Sottoscrizione
         Sottoscrizione s = new Sottoscrizione();
-        s.setUtente(utente);
+        s.setAtleta(atleta);
         s.setAbbonamento(abb);
         s.setPagamento(p);
 
@@ -58,14 +64,14 @@ public class SottoscrizioneService {
     }
 
     // Verifica validità
-    public boolean isValida(Long id) {
+    public boolean isValida(SottoscrizioneId id) {
         Sottoscrizione s = sottRepo.findById(id).orElseThrow(() -> new RuntimeException("Sottoscrizione non trovata"));
         if (s.getAbbonamento() == null) return false;
-        return s.getAbbonamento().getStato() != null && s.getAbbonamento().getStato().equals("ATTIVO");
+        return s.getAbbonamento().getStatoAbb() != null && s.getAbbonamento().getStatoAbb().equalsIgnoreCase("ATTIVO");
     }
 
     // Storico personale
     public List<Sottoscrizione> getStoricoUtente(String cf) {
-        return sottRepo.findByUtenteCf(cf);
+        return sottRepo.findByAtletaCf(cf);
     }
 }

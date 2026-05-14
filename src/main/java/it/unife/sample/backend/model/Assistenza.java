@@ -5,29 +5,31 @@ import lombok.*;
 
 
 @Entity
-@Table(name = "assistenza")
+@Table(name = "ASSISTENZA")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 public class Assistenza {
     @Id
+    @Column(name = "Id_Ticket")
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long idTicket;
     
     private String oggetto;
+    @Column(name = "Tipo_Ass")
     private String tipoAss;
     private String stato;
-    private String soddisfazione;
+    private Integer soddisfazione;
 
     // 1:N - Molte assistenze possono essere richieste da un solo utente
     @ManyToOne
-    @JoinColumn(name = "utente_cf", referencedColumnName = "Cf")
+    @JoinColumn(name = "Cf_Utente")
     private Utente utente;
 
      // 1:N - Molte assistenze possono essere risolte da un solo utente
     @ManyToOne
-    @JoinColumn(name = "admin_cf", referencedColumnName = "Cf")
-    private Utente admin;
-
-	//getter e setter di lombok...
+    @JoinColumn(name = "Cf_Assistente")
+    private Utente assistente;
+    
+    //getter e setter di lombok...
 }

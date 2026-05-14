@@ -3,6 +3,7 @@ package it.unife.sample.backend.controller; // Cartella controller
 // Devi importare sia il Model che il Repository
 import it.unife.sample.backend.model.Impianto;
 import it.unife.sample.backend.service.ImpiantoService;
+import it.unife.sample.backend.model.Attivita;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -37,7 +38,7 @@ public class ImpiantoController {
         if (!service.findById(id).isPresent()) {
             return ResponseEntity.notFound().build();
         }
-        impianto.setIdImpianto(id); 
+        impianto.setId(id);
         return ResponseEntity.ok(service.save(impianto));
     }
 
@@ -63,7 +64,7 @@ public class ImpiantoController {
     
     // Associa una attività a un impianto
     @PostMapping("/{id}/attivita/{codiceAtt}")
-    public ResponseEntity<Void> addAttivita(@PathVariable Long id, @PathVariable String codiceAtt) {
+    public ResponseEntity<Void> addAttivita(@PathVariable Long id, @PathVariable Long codiceAtt) {
 
         service.aggiungiAttivitaAImpianto(id, codiceAtt);
         return ResponseEntity.ok().build();

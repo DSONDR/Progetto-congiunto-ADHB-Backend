@@ -1,13 +1,15 @@
 package it.unife.sample.backend.controller;
 
-import it.unife.sample.backend.model.Attivita;
+import it.unife.sample.backend.dto.request.AttivitaRequestDTO;
+import it.unife.sample.backend.dto.response.AttivitaResponseDTO;
 import it.unife.sample.backend.service.AttivitaService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import jakarta.validation.Valid;
 import java.time.LocalDateTime;
-import java.util.*;
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/attivita")
@@ -17,36 +19,38 @@ public class AttivitaController {
     private AttivitaService service;
 
     @GetMapping
-    public List<Attivita> getAll() {
-        return service.findAll();
+    public List<AttivitaResponseDTO> getAll() {
+        return service.findAllDTO();
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Attivita> getById(@PathVariable Long id) {
-        return service.findById(id)
+    public ResponseEntity<AttivitaResponseDTO> getById(@PathVariable Long id) {
+        return service.findDtoById(id)
                 .map(ResponseEntity::ok)
                 .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
     @PostMapping
-    public Attivita create(@RequestBody Attivita attivita) {
-        return service.save(attivita);
+    public ResponseEntity<AttivitaResponseDTO> create(@Valid @RequestBody AttivitaRequestDTO dto) {
+        return ResponseEntity.ok(service.create(dto));
     }
 
     @GetMapping("/calendario")
-    public List<Attivita> getCalendario(
+    public List<AttivitaResponseDTO> getCalendario(
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime inizio,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime fine) {
         return service.getCalendario(inizio, fine);
     }
 
     @GetMapping("/filtra")
-    public List<Attivita> filtra(
+    public List<AttivitaResponseDTO> filtra(
             @RequestParam(required = false) Long idImpianto,
             @RequestParam(required = false) Double prezzo,
             @RequestParam(required = false) String target,
-            @RequestParam(required = false) String tipoEvento) {
-        return service.filtra(idImpianto, prezzo, target, tipoEvento);
+            @RequestParam(required = false) String tipoEvento,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime inizio,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime fine) {
+        return service.filtra(idImpianto, prezzo, target, tipoEvento, inizio, fine);
     }
 
     @GetMapping("/{id}/posti-disponibili")
@@ -66,12 +70,11 @@ public class AttivitaController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Attivita> update(@PathVariable Long id, @RequestBody Attivita attivita) {
+    public ResponseEntity<AttivitaResponseDTO> update(@PathVariable Long id, @Valid @RequestBody AttivitaRequestDTO dto) {
         if (!service.findById(id).isPresent()) {
             return ResponseEntity.notFound().build();
         }
-        attivita.setCodiceAtt(id);
-        return ResponseEntity.ok(service.save(attivita));
+        return ResponseEntity.ok(service.update(id, dto));
     }
 
     @DeleteMapping("/{id}")

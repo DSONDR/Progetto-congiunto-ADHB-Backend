@@ -1,7 +1,9 @@
 package it.unife.sample.backend.controller;
 
+import it.unife.sample.backend.dto.request.SottoscrizioneRequest;
 import it.unife.sample.backend.model.Abbonamento;
 import it.unife.sample.backend.model.Sottoscrizione;
+import it.unife.sample.backend.model.SottoscrizioneId;
 import it.unife.sample.backend.model.Utente;
 import it.unife.sample.backend.service.AbbonamentoService;
 import it.unife.sample.backend.service.SottoscrizioneService;
@@ -29,8 +31,11 @@ public class SottoscrizioneController {
         return service.findAll();
     }
 
-    @GetMapping("/{id}")
-    public ResponseEntity<Sottoscrizione> getById(@PathVariable Long id) {
+    @GetMapping("/{numeroAbb}/{idPagamento}/{cf}")
+    public ResponseEntity<Sottoscrizione> getById(@PathVariable Long numeroAbb,
+                                                  @PathVariable Long idPagamento,
+                                                  @PathVariable String cf) {
+        SottoscrizioneId id = new SottoscrizioneId(numeroAbb, idPagamento, cf);
         return service.findById(id)
                 .map(ResponseEntity::ok)
                 .orElseGet(() -> ResponseEntity.notFound().build());
@@ -41,17 +46,11 @@ public class SottoscrizioneController {
         return service.save(sottoscrizione);
     }
 
-    @PutMapping("/{id}")
-    public ResponseEntity<Sottoscrizione> update(@PathVariable Long id, @RequestBody Sottoscrizione sottoscrizione) {
-        if (!service.findById(id).isPresent()) {
-            return ResponseEntity.notFound().build();
-        }
-        sottoscrizione.setId(id);
-        return ResponseEntity.ok(service.save(sottoscrizione));
-    }
-
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Void> delete(@PathVariable Long id) {
+    @DeleteMapping("/{numeroAbb}/{idPagamento}/{cf}")
+    public ResponseEntity<Void> delete(@PathVariable Long numeroAbb,
+                                       @PathVariable Long idPagamento,
+                                       @PathVariable String cf) {
+        SottoscrizioneId id = new SottoscrizioneId(numeroAbb, idPagamento, cf);
         if (!service.findById(id).isPresent()) {
             return ResponseEntity.notFound().build();
         }
@@ -64,8 +63,11 @@ public class SottoscrizioneController {
         return service.getStoricoUtente(cf);
     }
 
-    @GetMapping("/{id}/valida")
-    public ResponseEntity<Boolean> isValid(@PathVariable Long id) {
+    @GetMapping("/{numeroAbb}/{idPagamento}/{cf}/valida")
+    public ResponseEntity<Boolean> isValid(@PathVariable Long numeroAbb,
+                                           @PathVariable Long idPagamento,
+                                           @PathVariable String cf) {
+        SottoscrizioneId id = new SottoscrizioneId(numeroAbb, idPagamento, cf);
         if (!service.findById(id).isPresent()) {
             return ResponseEntity.notFound().build();
         }

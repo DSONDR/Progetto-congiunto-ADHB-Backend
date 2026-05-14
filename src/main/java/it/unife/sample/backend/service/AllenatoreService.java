@@ -32,14 +32,15 @@ public class AllenatoreService {
     }
     
     //Trova allenatori con certo grado
-    public List<Allenatore> findByGrado(Integer grado){
+    public List<Allenatore> findByGrado(String grado){
     	return repository.findByGrado(grado);    
     }
+    
     //Trova gli allenatori tra due gradi
     public List<Allenatore> findByGradoBetween(Integer min, Integer max){
         if(min>max){
              return repository.findByGradoBetween(max, min);
         }   
         return repository.findByGradoBetween(min, max);
-    }     
+    }  
 }

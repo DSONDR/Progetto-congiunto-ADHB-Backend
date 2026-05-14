@@ -10,7 +10,7 @@ import java.util.List;
 public interface AllenatoreRepository extends JpaRepository<Allenatore, String> {
 
 	//Trova tutti gli allenatori con un certo grado
-	List<Allenatore> findByGrado(Integer grado);
+	List<Allenatore> findByGrado(String grado);
 	//Filtro allenatori tra due gradi
 	List<Allenatore> findByGradoBetween(Integer min, Integer max);
 }

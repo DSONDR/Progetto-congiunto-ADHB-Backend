@@ -11,31 +11,39 @@ import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
 
 @Entity
-@Table(name = "attivita")
+@Table(name = "ATTIVITA")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 public class Attivita {
     @Id
-    @Column(nullable = false, unique = true)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "Codice_Att", nullable = false, unique = true)
     private Long codiceAtt;
     
+    @Column(name = "Nome_Att")
     @NotBlank(message = "Nome obbligatorio")
     private String nomeAtt;
+    @Column(name = "Tipo_Evento")
     @NotBlank(message = "Tipo obbligatorio")
     private String tipoEvento; // Es: Allenamento, Partita, Corso
+    @Column(name = "Destinatario")
     private String destinatario; // Es: Junior, Senior, Tutti
+    @Column(name = "Quota_Base")
     private Double quotaBase;
-    @NotNull(message = "Orario obbligatorio")
-    private LocalDateTime dataOra; // Include data e ora di inizio, un record per ogni ripetizione attività
+    @Column(name = "Max_Partecipanti")
     private Integer maxPartecipanti;
+
+    @NotNull(message = "Istruttore obbligatorio")
+    @ManyToOne
+    @JoinColumn(name = "Cf_Istruttore")
+    private Istruttore istruttore;
 
     @NotNull(message = "Impianto obbligatorio")
     @ManyToOne
-    @JoinColumn(name = "id_impianto")
+    @JoinColumn(name = "Id_Impianto")
     private Impianto impianto;
 
-    // Relazione con le squadre (N:M)
-    @ManyToMany(mappedBy = "attivita")
-    private List<Squadra> squadre = new ArrayList<>();
+    @OneToMany(mappedBy = "attivita", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<DateAtt> dateAtts = new ArrayList<>();
 }

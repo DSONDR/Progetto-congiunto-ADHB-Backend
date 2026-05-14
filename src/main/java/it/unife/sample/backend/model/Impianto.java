@@ -6,7 +6,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Entity
-@Table(name = "impianto")
+@Table(name = "IMPIANTO")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -14,26 +14,23 @@ import java.util.List;
 public class Impianto {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "Id_Impianto")
     private Long id;
     
+    @Column(name = "Nome_I")
     private String nome_i;
+    @Column(name = "Tipo_Impianto")
     private String tipo_impianto;
-    private String omologazione;
+    @Column(name = "Stato_I")
     private String stato_i;
+    @Column(name = "Omologazione")
+    private String omologazione;
 
     // N:1 - un impianto può essere utilizzato da molte attività
     @OneToMany(mappedBy = "impianto")
     private List<Attivita> attivita = new ArrayList<>();
 
-
-    // N:M - Relazione Sponsorizza_Im
-    @ManyToMany
-    @JoinTable(
-        name = "sponsorizza_im",
-        joinColumns = @JoinColumn(name = "id_impianto"),
-        inverseJoinColumns = @JoinColumn(name = "p_iva_sponsor")
-    )
-    private List<Sponsor> sponsor = new ArrayList<>();
-
-	//getter e setter di lombok...
+    // Relazione con sponsorizzazioni
+    @OneToMany(mappedBy = "impianto")
+    private List<Sponsorizzazione> sponsorizzazioni = new ArrayList<>();
 }

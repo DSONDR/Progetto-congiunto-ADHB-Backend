@@ -7,7 +7,9 @@ import org.springframework.stereotype.Repository;
 
 import java.util.List;
 
+import it.unife.sample.backend.model.SottoscrizioneId;
+
 @Repository
-public interface SottoscrizioneRepository extends JpaRepository<Sottoscrizione, Long> {
-    List<Sottoscrizione> findByUtenteCf(String cf);
+public interface SottoscrizioneRepository extends JpaRepository<Sottoscrizione, SottoscrizioneId> {
+    List<Sottoscrizione> findByAtletaCf(String cf);
 }

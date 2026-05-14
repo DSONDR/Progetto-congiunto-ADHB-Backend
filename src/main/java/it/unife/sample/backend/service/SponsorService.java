@@ -29,7 +29,7 @@ public class SponsorService {
         return srepo.findAll();
     }
 
-    public Optional<Sponsor> findById(Long id) {
+    public Optional<Sponsor> findById(String id) {
         return srepo.findById(id);
     }
 
@@ -37,7 +37,7 @@ public class SponsorService {
         return srepo.save(sponsor);
     }
 
-    public void deleteById(Long id) {
+    public void deleteById(String id) {
         srepo.deleteById(id);
     }
 
@@ -54,7 +54,7 @@ public class SponsorService {
     // RELAZIONE CON SQUADRA
 
     // Associo sponsor a squadra
-    public void aggiungiSponsorASquadra(Long sponsorId, Long squadraId) {
+    public void aggiungiSponsorASquadra(String sponsorId, Long squadraId) {
 
         Sponsor sponsor = srepo.findById(sponsorId).orElseThrow();
 
@@ -65,7 +65,7 @@ public class SponsorService {
     }
 
     // Lista squadre sponsorizzate
-    public List<Squadra> getSquadreBySponsor(Long sponsorId) {
+    public List<Squadra> getSquadreBySponsor(String sponsorId) {
 
         return srepo.findById(sponsorId).map(Sponsor::getSquadre).orElse(new ArrayList<>());
     }
@@ -73,7 +73,7 @@ public class SponsorService {
     // RELAZIONE CON IMPIANTO
 
     // Associo sponsor a impianto
-    public void aggiungiSponsorAImpianto(Long sponsorId, Long impiantoId) {
+    public void aggiungiSponsorAImpianto(String sponsorId, Long impiantoId) {
 
         Sponsor sponsor = srepo.findById(sponsorId).orElseThrow();
         Impianto impianto = irepo.findById(impiantoId).orElseThrow();
@@ -83,7 +83,7 @@ public class SponsorService {
     }
 
     // Lista impianti sponsorizzati
-    public List<Impianto> getImpiantiBySponsor(Long sponsorId) {
+    public List<Impianto> getImpiantiBySponsor(String sponsorId) {
 
         return srepo.findById(sponsorId).map(Sponsor::getImpianti).orElse(new ArrayList<>());
     }

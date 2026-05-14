@@ -1,6 +1,8 @@
 package it.unife.sample.backend.controller;
 
+import it.unife.sample.backend.dto.response.AttivitaResponseDTO;
 import it.unife.sample.backend.model.Istruttore;
+import it.unife.sample.backend.service.AttivitaService;
 import it.unife.sample.backend.service.IstruttoreService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -13,6 +15,9 @@ public class IstruttoreController {
 
     @Autowired
     private IstruttoreService service;
+
+    @Autowired
+    private AttivitaService attivitaService;
 
     @GetMapping
     public List<Istruttore> getAll() {
@@ -47,5 +52,13 @@ public class IstruttoreController {
         }
         service.deleteById(cf);
         return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping("/{cf}/attivita")
+    public ResponseEntity<List<AttivitaResponseDTO>> getAttivita(@PathVariable String cf) {
+        if (!service.findById(cf).isPresent()) {
+            return ResponseEntity.notFound().build();
+        }
+        return ResponseEntity.ok(attivitaService.findByIstruttoreCf(cf));
     }
 }
