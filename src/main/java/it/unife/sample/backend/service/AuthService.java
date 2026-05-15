@@ -10,6 +10,7 @@ import it.unife.sample.backend.repository.UtenteRepository;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class AuthService {
@@ -17,21 +18,28 @@ public class AuthService {
     @Autowired
     private UtenteRepository utenteRepository;
 
-    //REGISTRAZIONE [Solo degli atleti, gli altri non si registrano da soli]
+    // Funzionalità di REGISTRAZIONE [Solo degli atleti, gli altri non si registrano
+    // da soli]
+    /**
+     * Registra un nuovo atleta nel database.
+     * Crea prima l'istanza di Atleta, la popola coi dati del DTO,
+     * e infine la salva nel repository.
+     */
+    @Transactional
     public UserResponseDTO register(RegisterRequestDTO dto) {
 
-        //Controlli unicità
-        if(utenteRepository.existsById(dto.getCf())) {
+        // Controlli di unicità pre creazione con i dati inseriti in frontend
+        if (utenteRepository.existsById(dto.getCf())) {
             throw new RuntimeException("Codice fiscale già registrato");
         }
-        if(utenteRepository.existsByEmail(dto.getEmail())) {
+        if (utenteRepository.existsByEmail(dto.getEmail())) {
             throw new RuntimeException("Email già registrata");
         }
-        if(utenteRepository.existsByUsername(dto.getUsername())) {
+        if (utenteRepository.existsByUsername(dto.getUsername())) {
             throw new RuntimeException("Username già esistente");
         }
 
-        //Creo atleta
+        // Creo atleta se unicità andata a buon fine
 
         Atleta atleta = new Atleta();
 
@@ -43,35 +51,35 @@ public class AuthService {
         atleta.setCittaResidenza(dto.getCittaResidenza());
         atleta.setUsername(dto.getUsername());
         atleta.setEmail(dto.getEmail());
-	//Ruolo applicativo
+        // Ruolo applicativo
         atleta.setTipoIscritto("ATLETA");
-
-        //Temporaneo
+        // Temporaneo
         atleta.setPassword(dto.getPassword());
-        
-        //Campi opzionali
+        // Campi opzionali
         atleta.setStipendio(null);
-        atleta.setEmissioneVisita(null);
-        atleta.setScadenzaVisita(null);
-        atleta.setMedicoRiferimento(null);
-
-        //Salvo nel DB
+        atleta.setCertificatiMedici(null);
+        // Salvo nel DB
         atleta = utenteRepository.save(atleta);
-        //E infine rispondo
+        // E infine rispondo con i dati formattati nel DTO
         return mapUserResponse(atleta);
     }
 
-    //LOGIN [stavolta per tutti i tipi]
+    // Funzionalità di LOGIN [stavolta per tutti i tipi]
+    /**
+     * Esegue il login controllando le credenziali (email e password).
+     * Restituisce i dati dell'utente formattati nel DTO di risposta per non esporre
+     * la password al FE.
+     */
     public LoginResponseDTO login(LoginRequestDTO dto) {
 
         Utente utente = utenteRepository.findByEmail(dto.getEmail())
                 .orElseThrow(() -> new RuntimeException("Utente non trovato"));
 
-        //Controllo password
-        if(!utente.getPassword().equals(dto.getPassword())) {
+        // Controllo password se giusta login
+        if (!utente.getPassword().equals(dto.getPassword())) {
             throw new RuntimeException("Password errata");
         }
-
+        // Se ok creo DTO di risposta
         LoginResponseDTO response = new LoginResponseDTO();
 
         response.setCf(utente.getCf());
@@ -84,43 +92,38 @@ public class AuthService {
         return response;
     }
 
-    //LOGOUT, vuoto perchè solo logico, su frontend
+    // Funzionalità di LOGOUT, vuoto perchè solo logico, su frontend
     public String logout() {
         return "Logout effettuato";
     }
 
-    //CANCELLA ACCOUNT
+    // Funzionalità di CANCELLAZIONE ACCOUNT
+    /**
+     * Elimina fisicamente l'account e tutti i dati correlati
+     * dell'utente dal database *in modo transazionale.
+     */
+    @Transactional
     public void deleteAccount(String cf) {
 
         Utente utente = utenteRepository.findById(cf)
                 .orElseThrow(() -> new RuntimeException("Utente non trovato"));
         utenteRepository.delete(utente);
     }
-    
-    //Mapper interno, chiamato alla creazione dell'atleta
+
+    // Mapper interno, chiamato alla creazione dell'atleta
     private UserResponseDTO mapUserResponse(Utente utente) {
 
         UserResponseDTO dto = new UserResponseDTO();
 
         dto.setCf(utente.getCf());
-
         dto.setNome(utente.getNome());
         dto.setCognome(utente.getCognome());
-
         dto.setGenere(utente.getGenere());
-
         dto.setDataNascita(utente.getDataNascita());
-
-        dto.setCittaResidenza(
-                utente.getCittaResidenza());
-
+        dto.setCittaResidenza(utente.getCittaResidenza());
         dto.setUsername(utente.getUsername());
-
         dto.setEmail(utente.getEmail());
-
-        dto.setTipoIscritto(
-                utente.getTipoIscritto());
-
+        dto.setTipoIscritto(utente.getTipoIscritto());
         return dto;
     }
 }

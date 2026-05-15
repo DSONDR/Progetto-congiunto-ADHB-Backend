@@ -7,6 +7,10 @@ import java.util.List;
 
 @Repository
 public interface SquadraRepository extends JpaRepository<Squadra, Long> {
-	List<Squadra> findByAllenatoreCf(String cf);
-	List<Squadra> findByAtletaCf(String cf);
+
+    // Trova le squadre allenate da un allenatore
+    List<Squadra> findByAllenatoreCf(String cf);
+
+    // Trova le squadre di cui un atleta fa parte
+    List<Squadra> findByAtletaCf(String cf);
 }

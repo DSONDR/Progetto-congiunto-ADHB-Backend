@@ -8,6 +8,14 @@ import lombok.Data;
 import java.time.LocalDateTime;
 import java.util.List;
 
+/**
+ * DTO utilizzato per la creazione e la modifica di un'Attività da parte
+ * dell'istruttore
+ * Raccoglie i dati passati dal frontend per definire le proprietà e le date
+ * dell'attività
+ * Utilizzato nel file AttivitaController (metodi create, update)
+ * e processato da AttivitaService (metodi create, update, mapToEntity)
+ */
 @Data
 public class AttivitaRequestDTO {
 

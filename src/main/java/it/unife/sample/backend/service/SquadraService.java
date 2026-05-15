@@ -16,7 +16,7 @@ public class SquadraService {
     private SquadraRepository sqRepo;
     @Autowired
     private AtletaRepository atlRepo;
-    
+
     // CRUD base
     public List<Squadra> findAll() {
         return sqRepo.findAll();
@@ -33,43 +33,46 @@ public class SquadraService {
     public void deleteById(Long id) {
         sqRepo.deleteById(id);
     }
-    
+
     // Altre funzioni
-    
+    // TODO, da usare ancora tutti
     // FK di squadra è il cf allenatore
-    public List<Squadra> findByAllenatoreCf(String cf){
+    public List<Squadra> findByAllenatoreCf(String cf) {
         return sqRepo.findByAllenatoreCf(cf);
-    } 
-	
-    // In compone ho cf atleta, e in model lo riporto su squadra, qui lista squadre di un atleta
-    public List<Squadra> findByAtletaCf(String cf){
+    }
+
+    // In compone ho cf atleta, e in model lo riporto su squadra, qui lista squadre
+    // di un atleta
+    public List<Squadra> findByAtletaCf(String cf) {
         return sqRepo.findByAtletaCf(cf);
     }
-    
+
     // Aggiungo atleta a una squadra
     public void aggiungiAtletaASquadra(Long squadraId, String atletaCf) {
         Squadra squadra = sqRepo.findById(squadraId).orElseThrow(() -> new RuntimeException("Squadra non trovata"));
         Atleta atleta = atlRepo.findById(atletaCf).orElseThrow(() -> new RuntimeException("Atleta non trovato"));
-        
+
         squadra.getAtleti().add(atleta);
         sqRepo.save(squadra);
     }
-    
+
     // Listo atleti di una squadra
     public List<Atleta> getAtletiBySquadra(Long squadraId) {
         return sqRepo.findById(squadraId)
-            .map(Squadra::getAtleti)
-            .orElse(new ArrayList<>());
+                .map(Squadra::getAtleti)
+                .orElse(new ArrayList<>());
     }
 
     // Ottengo tutti gli atleti con visita medica scaduta
     public List<Atleta> getAtletiScadutiBySquadra(Long squadraId) {
         Squadra squadra = sqRepo.findById(squadraId)
                 .orElseThrow(() -> new RuntimeException("Squadra non trovata"));
-        
+
         return squadra.getAtleti().stream()
-                .filter(atleta -> atleta.getScadenzaVisita() != null && 
-                                  atleta.getScadenzaVisita().isBefore(LocalDate.now()))
+                .filter(atleta -> atleta.getCertificatiMedici() == null || atleta.getCertificatiMedici().isEmpty() ||
+                        atleta.getCertificatiMedici().stream()
+                                .noneMatch(cert -> cert.getDataScadenza() != null
+                                        && !cert.getDataScadenza().isBefore(LocalDate.now())))
                 .collect(Collectors.toList());
     }
 }

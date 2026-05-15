@@ -9,7 +9,27 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import java.util.*;
 
-
+/**
+ * TODO, completamente da fare
+ * Controller per la gestione degli Impianti
+ * Espone API per il CRUD degli impianti e l'associazione con le Attività
+ * 
+ * NOTA: alcuni impianti sono già occupati, avviene automaticamene con le
+ * attività che vengono create dall'istruttore in un dato impianto e dato
+ * momento
+ * 
+ * API Esposte:
+ * - GET /api/impianto -> Elenco impianti
+ * - GET /api/impianto/{id} -> Dettaglio impianto
+ * - POST /api/impianto -> Crea impianto
+ * - PUT /api/impianto/{id} -> Modifica impianto
+ * - DELETE /api/impianto/{id} -> Cancella impianto
+ * - GET /api/impianto/tipo/{TipoImpianto} -> Cerca per tipo
+ * - GET /api/impianto/stato/{stato} -> Cerca per stato
+ * - POST /api/impianto/{id}/attivita/{codiceAtt} -> Associa attività
+ * all'impianto
+ * - GET /api/impianto/{id}/attivita -> Visualizza attività dell'impianto
+ */
 @RestController
 @RequestMapping("/api/impianto")
 public class ImpiantoController {
@@ -50,8 +70,7 @@ public class ImpiantoController {
         service.deleteById(id);
         return ResponseEntity.noContent().build();
     }
- 
-    
+
     @GetMapping("/tipo/{TipoImpianto}")
     public List<Impianto> findByTipoImpianto(@PathVariable String tipoImpianto) {
         return service.findByTipoImpianto(tipoImpianto);
@@ -61,8 +80,14 @@ public class ImpiantoController {
     public List<Impianto> findByStato(@PathVariable String stato) {
         return service.findByStato(stato);
     }
-    
-    // Associa una attività a un impianto
+
+    // RELAZIONE CON ATTIVITA
+
+    // Funzionalità: Associa un'attività (corso/evento) a uno specifico impianto.
+    // Usato tipicamente se l'allenatore crea un'attività che nasce già con un
+    // impianto associato,
+    // mentre l'istruttore glielo associa se l'impianto è libero mentre crea
+    // l'attività (non qua)
     @PostMapping("/{id}/attivita/{codiceAtt}")
     public ResponseEntity<Void> addAttivita(@PathVariable Long id, @PathVariable Long codiceAtt) {
 

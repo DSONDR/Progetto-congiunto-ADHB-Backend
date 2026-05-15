@@ -7,6 +7,18 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import java.util.*;
 
+/**
+ * Controller per la gestione dei Certificati Medici degli Atleti.
+ * Espone API per la creazione, aggiornamento e interrogazione dei certificati.
+ * 
+ * API Esposte:
+ * - GET    /api/certificati-medici         -> Elenco certificati
+ * - GET    /api/certificati-medici/{id}    -> Dettaglio certificato
+ * - POST   /api/certificati-medici         -> Crea certificato
+ * - PUT    /api/certificati-medici/{id}    -> Modifica certificato
+ * - DELETE /api/certificati-medici/{id}    -> Cancella certificato
+ * - GET    /api/certificati-medici/search  -> Cerca certificati per atleta (cf)
+ */
 @RestController
 @RequestMapping("/api/certificati-medici")
 public class CertificatoMedicoController {

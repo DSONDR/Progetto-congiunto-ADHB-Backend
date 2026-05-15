@@ -4,6 +4,13 @@ import jakarta.validation.constraints.*;
 import lombok.Data;
 import java.time.LocalDate;
 
+/**
+ * DTO utilizzato per la registrazione di un nuovo Atleta
+ * Raccoglie i dati anagrafici e le credenziali inserite nel form di
+ * registrazione dal frontend
+ * Utilizzato nel file AuthController (metodo register)
+ * e processato da AuthService (metodo register)
+ */
 @Data
 public class RegisterRequestDTO {
 

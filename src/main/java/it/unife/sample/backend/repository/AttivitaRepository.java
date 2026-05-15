@@ -13,26 +13,44 @@ import it.unife.sample.backend.model.Attivita;
 
 @Repository
 public interface AttivitaRepository extends JpaRepository<Attivita, Long> {
-    List<Attivita> findByImpiantoId(Long id);
-    List<Attivita> findByQuotaBaseLessThanEqual(Double prezzoMax);
-    List<Attivita> findByDestinatario(String destinatario);
-    List<Attivita> findByIstruttoreCf(String cfIstruttore);
 
-    @Query("SELECT DISTINCT a FROM Attivita a JOIN a.dateAtts d WHERE d.date BETWEEN :start AND :end")
-    List<Attivita> findByDateAttsDateBetween(@Param("start") LocalDateTime start, @Param("end") LocalDateTime end);
+       // Recupera tutte le attività che si svolgono un impianto
+       List<Attivita> findByImpiantoId(Long id);
 
-    // Filtro flessibile: filtra per i campi forniti (null = ignora)
-    @Query("SELECT DISTINCT a FROM Attivita a LEFT JOIN a.dateAtts d WHERE " +
-           "(:impiantoId IS NULL OR a.impianto.id = :impiantoId) AND " +
-           "(:prezzo IS NULL OR a.quotaBase <= :prezzo) AND " +
-           "(:target IS NULL OR a.destinatario = :target) AND " +
-           "(:tipoEvento IS NULL OR a.tipoEvento = :tipoEvento) AND " +
-           "(:inizio IS NULL OR d.date >= :inizio) AND " +
-           "(:fine IS NULL OR d.date <= :fine)")
-    List<Attivita> findFiltered(@Param("impiantoId") Long impiantoId, 
-                                @Param("prezzo") Double prezzo, 
-                                @Param("target") String target, 
-                                @Param("tipoEvento") String tipoEvento,
-                                @Param("inizio") LocalDateTime inizio,
-                                @Param("fine") LocalDateTime fine);
+       // Recupera le attività assegnate a un istruttore
+       List<Attivita> findByIstruttoreCf(String cfIstruttore);
+
+       // Trova attività programmate in un intervallo di date
+       @Query("SELECT DISTINCT a FROM Attivita a JOIN a.dateAtts d WHERE d.date BETWEEN :start AND :end")
+       List<Attivita> findByDateAttsDateBetween(@Param("start") LocalDateTime start, @Param("end") LocalDateTime end);
+
+       // Filtro di ricerca dinamico, ignora i campi nulli e filtra gli altri in base
+       // ai parametri passati
+       // Usato da AttivitaService.filtra() nella funzionalità di ricerca pre
+       // iscrizione
+       @Query("SELECT DISTINCT a FROM Attivita a LEFT JOIN a.dateAtts d WHERE " +
+                     "(:impiantoId IS NULL OR a.impianto.id = :impiantoId) AND " +
+                     "(:prezzo IS NULL OR a.quotaBase <= :prezzo) AND " +
+                     "(:target IS NULL OR a.destinatario = :target) AND " +
+                     "(:tipoEvento IS NULL OR a.tipoEvento = :tipoEvento) AND " +
+                     "(:inizio IS NULL OR d.date >= :inizio) AND " +
+                     "(:fine IS NULL OR d.date <= :fine)")
+       List<Attivita> findFiltered(@Param("impiantoId") Long impiantoId,
+                     @Param("prezzo") Double prezzo,
+                     @Param("target") String target,
+                     @Param("tipoEvento") String tipoEvento,
+                     @Param("inizio") LocalDateTime inizio,
+                     @Param("fine") LocalDateTime fine);
+
+       // Verifica se esiste già un'attività in quell'impianto in date specifiche
+       // Usato da AttivitaService.create() nella funzionalità di creazione attività
+       @Query("SELECT COUNT(a) > 0 FROM Attivita a JOIN a.dateAtts d WHERE a.impianto.id = :impiantoId AND d.date IN :date")
+       boolean existsByImpiantoAndDateOverlap(@Param("impiantoId") Long impiantoId,
+                     @Param("date") List<LocalDateTime> date);
+
+       // Verifica sovrapposizioni escludendo l'attività corrente (usato in update)
+       // Usato da AttivitaService.update() nella funzionalità di modifica attività
+       @Query("SELECT COUNT(a) > 0 FROM Attivita a JOIN a.dateAtts d WHERE a.impianto.id = :impiantoId AND a.codiceAtt != :codiceAtt AND d.date IN :date")
+       boolean existsByImpiantoAndDateOverlapExcluding(@Param("impiantoId") Long impiantoId,
+                     @Param("codiceAtt") Long codiceAtt, @Param("date") List<LocalDateTime> date);
 }

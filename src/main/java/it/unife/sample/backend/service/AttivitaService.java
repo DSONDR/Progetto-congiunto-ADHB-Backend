@@ -37,7 +37,7 @@ public class AttivitaService {
     @Autowired
     private ImpiantoService impiantoService;
 
-    //VISUALIZZAZIONE [Pubblici - lettura attività]
+    // Metodi per la visualizzazione, pubblici per tutti i tipi di utente
     public List<Attivita> findAll() {
         return repo.findAll();
     }
@@ -56,7 +56,7 @@ public class AttivitaService {
         return repo.findById(id).map(this::mapToResponse);
     }
 
-    //CREAZIONE E MODIFICA [Solo istruttori]
+    // Metodi per la creazione e modifica delle attività, solo per istruttori
     @Transactional
     public Attivita save(Attivita a) {
         return repo.save(a);
@@ -67,23 +67,36 @@ public class AttivitaService {
         repo.deleteById(id);
     }
 
+    // Metodi usati per la modifica e la creazione, accessibili solo all'istruttore
+    // Metodo che crea un'attività e la salva nel database
     @Transactional
     public AttivitaResponseDTO create(AttivitaRequestDTO dto) {
-        //Verifica che istruttore e impianto esistano
+        // Verifica che istruttore e impianto esistano
         Istruttore istruttore = istruttoreService.findById(dto.getIstruttoreCf())
                 .orElseThrow(() -> new IllegalArgumentException("Istruttore non trovato: " + dto.getIstruttoreCf()));
 
         Impianto impianto = impiantoService.findById(dto.getImpiantoId())
                 .orElseThrow(() -> new IllegalArgumentException("Impianto non trovato: " + dto.getImpiantoId()));
 
+        // Prevenzione sovrapposizioni: controlla se l'impianto è libero per la date in
+        // cui si vuole creare l'attività
+        if (dto.getDateOrari() != null && !dto.getDateOrari().isEmpty()) {
+            boolean isOccupato = repo.existsByImpiantoAndDateOverlap(impianto.getId(), dto.getDateOrari());
+            if (isOccupato) {
+                throw new IllegalStateException("L'impianto selezionato è già occupato in una o più date indicate");
+            }
+        }
+
+        // Se esistono mappa l'attività sul dto e la salva
         Attivita attivita = mapToEntity(dto, istruttore, impianto, new Attivita());
         Attivita saved = repo.save(attivita);
         return mapToResponse(saved);
     }
 
+    // Metodo che aggiorna un'attività e la salva nel database
     @Transactional
     public AttivitaResponseDTO update(Long id, AttivitaRequestDTO dto) {
-        //Recupera attività esistente e aggiorna dati
+        // Recupera attività esistente e aggiorna dati
         Attivita existing = repo.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Attività non trovata: " + id));
 
@@ -93,22 +106,32 @@ public class AttivitaService {
         Impianto impianto = impiantoService.findById(dto.getImpiantoId())
                 .orElseThrow(() -> new IllegalArgumentException("Impianto non trovato: " + dto.getImpiantoId()));
 
+        // Prevenzione sovrapposizioni: controlla se l'impianto è libero escludendo
+        // questa stessa attività
+        if (dto.getDateOrari() != null && !dto.getDateOrari().isEmpty()) {
+            boolean isOccupato = repo.existsByImpiantoAndDateOverlapExcluding(impianto.getId(), existing.getCodiceAtt(),
+                    dto.getDateOrari());
+            if (isOccupato) {
+                throw new IllegalStateException("L'impianto selezionato è già occupato in una o più date indicate");
+            }
+        }
+
         Attivita attivita = mapToEntity(dto, istruttore, impianto, existing);
         Attivita saved = repo.save(attivita);
         return mapToResponse(saved);
     }
 
-    //RICERCA E FILTRAGGIO [Pubblici - lettura attività]
+    // Metodi usati per la ricerca e il filtraggio, accessibili a tutti gli utenti
+    // Metodo che restituisce un elenco di attività ordinate per data
     public List<AttivitaResponseDTO> getCalendario(LocalDateTime inizio, LocalDateTime fine) {
         return repo.findByDateAttsDateBetween(inizio, fine).stream()
                 .map(this::mapToResponse)
                 .collect(Collectors.toList());
     }
 
-    // --- FILTRI ---
-    //Ricerca avanzata con più parametri
+    // Ricerca avanzata con più parametri
     public List<AttivitaResponseDTO> filtra(Long idImpianto, Double prezzo, String target, String tipoEvento,
-                                            LocalDateTime inizio, LocalDateTime fine) {
+            LocalDateTime inizio, LocalDateTime fine) {
         return repo.findFiltered(idImpianto, prezzo, target, tipoEvento, inizio, fine).stream()
                 .map(this::mapToResponse)
                 .collect(Collectors.toList());
@@ -120,18 +143,23 @@ public class AttivitaService {
                 .collect(Collectors.toList());
     }
 
-    //GESTIONE POSTI [Usato da IscrizioneService per validazione]
-    //Conta tutti gli iscritti (singoli + abbonamento)
+    // Metodi per la gestione dei posti, usati da IscrizioneService per la
+    // validazione
+    // Metodo che conta tutti gli iscritti a un'attività
+    // (da sommare agli iscritti con abbonamento)
     public int getNumeroIscritti(Long idAttivita) {
         return (int) (iscRepo.countByAttivitaCodiceAtt(idAttivita) + usaRepo.countByAttivitaCodiceAtt(idAttivita));
     }
 
-    //Verifica se ci sono ancora posti disponibili
+    // Verifica se ci sono ancora posti disponibili
     public boolean isPostoDisponibile(Long idAttivita) {
-        Attivita a = repo.findById(idAttivita).orElseThrow(() -> new IllegalArgumentException("Attività non trovata: " + idAttivita));
+        Attivita a = repo.findById(idAttivita)
+                .orElseThrow(() -> new IllegalArgumentException("Attività non trovata: " + idAttivita));
         return getNumeroIscritti(idAttivita) < a.getMaxPartecipanti();
     }
 
+    // Metodo helper per convertire un DTO in un'entità Attivita
+    // Usato in create() e update()
     private Attivita mapToEntity(AttivitaRequestDTO dto, Istruttore istruttore, Impianto impianto, Attivita attivita) {
         if (dto.getCodiceAtt() != null) {
             attivita.setCodiceAtt(dto.getCodiceAtt());
@@ -155,6 +183,8 @@ public class AttivitaService {
         return attivita;
     }
 
+    // Metodo per convertire un'entità Attivita in un DTO
+    // Usato in findAllDTO() e findDtoById()
     private AttivitaResponseDTO mapToResponse(Attivita attivita) {
         AttivitaResponseDTO dto = new AttivitaResponseDTO();
         dto.setCodiceAtt(attivita.getCodiceAtt());

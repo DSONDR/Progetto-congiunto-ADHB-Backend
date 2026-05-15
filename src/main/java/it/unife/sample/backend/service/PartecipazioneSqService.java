@@ -15,6 +15,7 @@ public class PartecipazioneSqService {
     @Autowired
     private PartecipazioneSqRepository repository;
 
+    // CRUD base
     public List<PartecipazioneSq> findAll() {
         return repository.findAll();
     }
@@ -31,10 +32,14 @@ public class PartecipazioneSqService {
         repository.deleteById(id);
     }
 
+    // Filtro per id squadra
+    // TODO, da usare ancora
     public List<PartecipazioneSq> findBySquadraId(Long squadraId) {
         return repository.findBySquadraId(squadraId);
     }
 
+    // Filtro per id attività
+    // TODO, da usare ancora
     public List<PartecipazioneSq> findByAttivitaId(Long attivitaId) {
         return repository.findByAttivitaCodiceAtt(attivitaId);
     }

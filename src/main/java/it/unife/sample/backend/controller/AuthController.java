@@ -11,6 +11,16 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+/**
+ * Controller per la gestione dell'Autenticazione (Login, Registrazione, Logout
+ * e cancellazione)
+ *
+ * API Esposte:
+ * - POST /api/auth/register -> Registrazione nuovo utente (Atleta, ecc.)
+ * - POST /api/auth/login -> Login utente
+ * - POST /api/auth/logout -> Logout utente
+ * - DELETE /api/auth/delete/{cf} -> Cancellazione account utente
+ */
 @RestController
 @RequestMapping("/api/auth")
 public class AuthController {
@@ -18,27 +28,28 @@ public class AuthController {
     @Autowired
     private AuthService service;
 
-    //REGISTRAZIONE
+    // Funzionalità: Registrazione di un nuovo utente nel sistema (gestisce anche i
+    // sottotipi tramite tipoIscritto).
     @PostMapping("/register")
-    public ResponseEntity<UserResponseDTO> register(@Valid @RequestBody RegisterRequestDTO dto) {
-        return ResponseEntity.ok(service.register(dto));
+    public ResponseEntity<UserResponseDTO> register(@RequestBody @Valid RegisterRequestDTO request) {
+        return ResponseEntity.ok(service.register(request));
     }
 
-    //LOGIN
+    // Funzionalità: Autenticazione dell'utente tramite email o username e password.
     @PostMapping("/login")
-    public ResponseEntity<LoginResponseDTO> login(@Valid @RequestBody LoginRequestDTO dto) {
-        return ResponseEntity.ok(service.login(dto));
+    public ResponseEntity<LoginResponseDTO> login(@RequestBody @Valid LoginRequestDTO request) {
+        return ResponseEntity.ok(service.login(request));
     }
 
-    //LOGOUT
+    // Funzionalità: Logout utente
     @PostMapping("/logout")
     public ResponseEntity<String> logout() {
         return ResponseEntity.ok(service.logout());
     }
-    
-    //CANCELLA ACCOUNT
-    @DeleteMapping("/{cf}")
-    public ResponseEntity<Void> deleteAccount(@PathVariable String cf) {
+
+    // Funzionalità: Cancellazione definitiva dell'account utente dal sistema.
+    @DeleteMapping("/delete/{cf}")
+    public ResponseEntity<String> deleteAccount(@PathVariable String cf) {
         service.deleteAccount(cf);
         return ResponseEntity.noContent().build();
     }

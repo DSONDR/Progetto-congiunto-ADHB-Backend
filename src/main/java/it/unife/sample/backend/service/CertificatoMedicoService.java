@@ -13,6 +13,7 @@ public class CertificatoMedicoService {
     @Autowired
     private CertificatoMedicoRepository repository;
 
+    // CRUD BASE
     public List<CertificatoMedico> findAll() {
         return repository.findAll();
     }
@@ -29,6 +30,8 @@ public class CertificatoMedicoService {
         repository.deleteById(id);
     }
 
+    // Funzionalità collegamento atleta
+    // TODO, da usare ancora
     public List<CertificatoMedico> findByUtenteCf(String cf) {
         return repository.findByUtenteCf(cf);
     }

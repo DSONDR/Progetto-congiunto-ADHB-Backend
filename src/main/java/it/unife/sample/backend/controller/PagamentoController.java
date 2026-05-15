@@ -9,6 +9,19 @@ import org.springframework.web.bind.annotation.*;
 import java.time.LocalDateTime;
 import java.util.*;
 
+/**
+ * Controller per la visualizzazione dei Pagamenti (ACCESSO IN LETTURA)
+ * NOTA: I pagamenti sono un registro immutabile e vengono creati
+ * automaticamente in fase di iscrizione o sottoscrizione, per questo non
+ * sono esposte API di creazione o modifica manuale.
+ * 
+ * API Esposte:
+ * - GET /api/pagamenti -> Elenco di tutti i pagamenti x admin
+ * - GET /api/pagamenti/{id} -> Dettaglio pagamento x admin
+ * - GET /api/pagamenti/ricerca -> Filtro per data e/o importo x utente/admin
+ * - GET /api/pagamenti/attivita/{id} -> Pagamenti associati a una specifica
+ * attività
+ */
 @RestController
 @RequestMapping("/api/pagamenti")
 public class PagamentoController {
@@ -26,29 +39,6 @@ public class PagamentoController {
         return service.findById(id)
                 .map(ResponseEntity::ok)
                 .orElseGet(() -> ResponseEntity.notFound().build());
-    }
-
-    @PostMapping
-    public ResponseEntity<Pagamento> create(@RequestBody Pagamento pagamento) {
-        return ResponseEntity.ok(service.save(pagamento));
-    }
-
-    @PutMapping("/{id}")
-    public ResponseEntity<Pagamento> update(@PathVariable Long id, @RequestBody Pagamento pagamento) {
-        if (!service.findById(id).isPresent()) {
-            return ResponseEntity.notFound().build();
-        }
-        pagamento.setIdPagamento(id);
-        return ResponseEntity.ok(service.save(pagamento));
-    }
-
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Void> delete(@PathVariable Long id) {
-        if (!service.findById(id).isPresent()) {
-            return ResponseEntity.notFound().build();
-        }
-        service.deleteById(id);
-        return ResponseEntity.noContent().build();
     }
 
     @GetMapping("/ricerca")

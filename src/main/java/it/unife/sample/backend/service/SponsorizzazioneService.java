@@ -13,6 +13,7 @@ public class SponsorizzazioneService {
     @Autowired
     private SponsorizzazioneRepository repository;
 
+    // CRUD base
     public List<Sponsorizzazione> findAll() {
         return repository.findAll();
     }
@@ -29,6 +30,8 @@ public class SponsorizzazioneService {
         repository.deleteById(id);
     }
 
+    // Metodi di filtraggio
+    // TODO, da usare ancora entrmabi
     public List<Sponsorizzazione> findBySponsorPIva(String pIva) {
         return repository.findBySponsorPIva(pIva);
     }

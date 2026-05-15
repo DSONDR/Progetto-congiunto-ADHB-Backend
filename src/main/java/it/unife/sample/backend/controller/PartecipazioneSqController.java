@@ -9,6 +9,11 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.*;
 
+/**
+ * TODO completamente da fare
+ * Probabilmente da eliminare, i controller e i service ponte non servono
+ */
+
 @RestController
 @RequestMapping("/api/partecipazioni-sq")
 public class PartecipazioneSqController {

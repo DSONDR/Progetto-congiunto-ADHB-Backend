@@ -9,13 +9,13 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface AssistenzaRepository extends JpaRepository<Assistenza, Long> {
 
-    // ricerca ticket per stato
+    // Ricerca ticket per stato
     List<Assistenza> findByStato(String stato);
 
-    // ricerca ticket per tipo assistenza
+    // Ricerca ticket per tipo assistenza
     List<Assistenza> findByTipoAss(String tipoAss);
 
-    // ricerca ticket per soddisfazione
+    // Ricerca ticket per soddisfazione
     List<Assistenza> findBySoddisfazione(String soddisfazione);
 
 }

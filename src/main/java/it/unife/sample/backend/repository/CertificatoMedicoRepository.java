@@ -7,5 +7,7 @@ import java.util.List;
 
 @Repository
 public interface CertificatoMedicoRepository extends JpaRepository<CertificatoMedico, Long> {
+
+    // Trova certificato medico relativo all'utente dal suo Cf
     List<CertificatoMedico> findByUtenteCf(String cf);
 }

@@ -41,6 +41,7 @@ public class SponsorService {
         srepo.deleteById(id);
     }
 
+    // Metodi di ricerca, TODO, ancora tutti da usare
     // Ricerca sponsor per azienda
     public List<Sponsor> findByAzienda(String azienda) {
         return srepo.findByAzienda(azienda);
@@ -52,7 +53,6 @@ public class SponsorService {
     }
 
     // RELAZIONE CON SQUADRA
-
     // Associo sponsor a squadra
     public void aggiungiSponsorASquadra(String sponsorId, Long squadraId) {
 
@@ -71,7 +71,6 @@ public class SponsorService {
     }
 
     // RELAZIONE CON IMPIANTO
-
     // Associo sponsor a impianto
     public void aggiungiSponsorAImpianto(String sponsorId, Long impiantoId) {
 

@@ -2,6 +2,7 @@ package it.unife.sample.backend.model;
 
 import jakarta.persistence.*;      // Risolve @Entity, @Table, @Id, @Column, @Inheritance
 import java.time.LocalDate;        // Risolve LocalDate
+import java.util.List;             // Per la lista di certificati
 import lombok.Data;                // Per Lombok
 import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
@@ -63,9 +64,8 @@ public class Utente {
     @Column(name = "Stipendio")
     @DecimalMin(value = "0.0", inclusive = false, message = "Stipendio deve essere positivo")
     private Double stipendio; // Può essere null
-    private LocalDate emissioneVisita;
-    private LocalDate scadenzaVisita;
-    private String medicoRiferimento;
+    @OneToMany(mappedBy = "utente", cascade = CascadeType.ALL)
+    private List<CertificatoMedico> certificatiMedici;
 
     // Getter e Setter fatti da Lombok.
 }

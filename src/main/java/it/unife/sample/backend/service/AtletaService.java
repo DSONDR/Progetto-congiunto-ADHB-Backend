@@ -1,4 +1,5 @@
 package it.unife.sample.backend.service;
+
 import java.util.*;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -9,9 +10,10 @@ import it.unife.sample.backend.repository.AtletaRepository;
 
 @Service
 public class AtletaService {
-     @Autowired
+    @Autowired
     private AtletaRepository repository;
 
+    // Crud base
     public List<Atleta> findAll() {
         return repository.findAll();
     }
@@ -27,4 +29,6 @@ public class AtletaService {
     public void deleteById(String id) {
         repository.deleteById(id);
     }
+
+    // Altre funzionalità in utente e lui le eredita
 }

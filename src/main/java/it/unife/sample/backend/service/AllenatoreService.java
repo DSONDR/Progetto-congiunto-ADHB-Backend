@@ -13,7 +13,7 @@ public class AllenatoreService {
     @Autowired
     private AllenatoreRepository repository;
 
-    //Crud per l'id univoco
+    // Crud base
     public List<Allenatore> findAll() {
         return repository.findAll();
     }
@@ -23,24 +23,26 @@ public class AllenatoreService {
     }
 
     public Allenatore save(Allenatore allenatore) {
-        //qui da aggiungere controlli sui gradi, ma se servono chi li chiede?
+        // qui da aggiungere controlli sui gradi, ma se servono chi li chiede?
         return repository.save(allenatore);
     }
 
     public void deleteById(String id) {
         repository.deleteById(id);
     }
-    
-    //Trova allenatori con certo grado
-    public List<Allenatore> findByGrado(String grado){
-    	return repository.findByGrado(grado);    
+
+    // Trova allenatori con certo grado
+    // TODO, da usare ancora
+    public List<Allenatore> findByGrado(String grado) {
+        return repository.findByGrado(grado);
     }
-    
-    //Trova gli allenatori tra due gradi
-    public List<Allenatore> findByGradoBetween(Integer min, Integer max){
-        if(min>max){
-             return repository.findByGradoBetween(max, min);
-        }   
+
+    // Trova gli allenatori tra due gradi
+    // TODO, da usare ancora
+    public List<Allenatore> findByGradoBetween(Integer min, Integer max) {
+        if (min > max) {
+            return repository.findByGradoBetween(max, min);
+        }
         return repository.findByGradoBetween(min, max);
-    }  
+    }
 }

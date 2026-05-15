@@ -8,5 +8,7 @@ import java.util.List;
 
 @Repository
 public interface DateAttRepository extends JpaRepository<DateAtt, DateAttId> {
+
+    // Trova le date di un'attività dato il suo codice
     List<DateAtt> findByAttivitaCodiceAtt(Long codiceAtt);
 }

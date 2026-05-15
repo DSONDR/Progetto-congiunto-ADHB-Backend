@@ -9,7 +9,24 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import java.util.*;
 
-
+/**
+ * TODO completamente da fare
+ * Controller per la gestione degli Sponsor.
+ * Espone API per il CRUD degli sponsor e l'associazione con Squadre e Impianti.
+ * 
+ * API Esposte:
+ * - GET /api/sponsor -> Elenco sponsor
+ * - GET /api/sponsor/{id} -> Dettaglio sponsor
+ * - POST /api/sponsor -> Crea sponsor
+ * - PUT /api/sponsor/{id} -> Modifica sponsor
+ * - DELETE /api/sponsor/{id} -> Cancella sponsor
+ * - GET /api/sponsor/azienda/{azienda} -> Cerca per nome azienda
+ * - GET /api/sponsor/piva/{pIva} -> Cerca per partita IVA
+ * - POST /api/sponsor/{id}/squadre/{idSquadra} -> Associa sponsor a squadra
+ * - GET /api/sponsor/{id}/squadre -> Visualizza squadre sponsorizzate
+ * - POST /api/sponsor/{id}/impianti/{idImpianto} -> Associa sponsor a impianto
+ * - GET /api/sponsor/{id}/impianti -> Visualizza impianti sponsorizzati
+ */
 @RestController
 @RequestMapping("/api/sponsor")
 public class SponsorController {
@@ -69,7 +86,7 @@ public class SponsorController {
 
     // RELAZIONE CON SQUADRA
 
-    // Associa uno sponsor a una squadra
+    // Associa uno sponsor a una determinata squadra.
     @PostMapping("/{id}/squadre/{idSquadra}")
     public ResponseEntity<Void> addSquadra(@PathVariable String id, @PathVariable Long idSquadra) {
 
@@ -84,13 +101,12 @@ public class SponsorController {
         return service.getSquadreBySponsor(id);
     }
 
-
     // RELAZIONE CON IMPIANTO
 
-    // Associa uno sponsor a un impianto
+    // Associa uno sponsor a un determinato impianto.
     @PostMapping("/{id}/impianti/{idImpianto}")
     public ResponseEntity<Void> addImpianto(@PathVariable String id,
-                                            @PathVariable Long idImpianto) {
+            @PathVariable Long idImpianto) {
 
         service.aggiungiSponsorAImpianto(id, idImpianto);
 

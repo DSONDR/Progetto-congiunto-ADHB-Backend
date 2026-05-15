@@ -8,7 +8,18 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import java.util.*;
 
-
+/**
+ * Controller per la gestione dell'Atleta (ACCESSO IN LETTURA)
+ * Permette la visualizzazione dell'elenco degli atleti e del dettaglio singolo
+ * NOTA: La creazione, cancellazione e aggiornamento dell'account avvengono
+ * tramite i flussi di registrazione e gestione in AuthController
+ * 
+ * API Esposte:
+ * - GET /api/atleti -> Elenco di tutti gli atleti
+ * - GET /api/atleti/{cf} -> Dettaglio singolo atleta
+ * Nota:
+ * La parte di gestione (update, delete) viene effettuata tramite AuthController
+ */
 @RestController
 @RequestMapping("/api/atleti")
 public class AtletaController {
@@ -26,28 +37,5 @@ public class AtletaController {
         return service.findById(cf)
                 .map(ResponseEntity::ok)
                 .orElseGet(() -> ResponseEntity.notFound().build());
-    }
-
-    @PostMapping
-    public Atleta create(@RequestBody Atleta atleta) {
-        return service.save(atleta);
-    }
-
-    @PutMapping("/{cf}")
-    public ResponseEntity<Atleta> update(@PathVariable String cf, @RequestBody Atleta atleta) {
-        if (!service.findById(cf).isPresent()) {
-            return ResponseEntity.notFound().build();
-        }
-        atleta.setCf(cf);
-        return ResponseEntity.ok(service.save(atleta));
-    }
-
-    @DeleteMapping("/{cf}")
-    public ResponseEntity<Void> delete(@PathVariable String cf) {
-        if (!service.findById(cf).isPresent()) {
-            return ResponseEntity.notFound().build();
-        }
-        service.deleteById(cf);
-        return ResponseEntity.noContent().build();
     }
 }

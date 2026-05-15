@@ -7,6 +7,18 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import java.util.*;
 
+/**TODO completamente da fare
+ * Controller per la gestione delle Sponsorizzazioni.
+ * Espone API per il CRUD delle sponsorizzazioni (contratti con importo/durata) e la ricerca.
+ * 
+ * API Esposte:
+ * - GET    /api/sponsorizzazioni           -> Elenco sponsorizzazioni
+ * - GET    /api/sponsorizzazioni/{id}      -> Dettaglio sponsorizzazione
+ * - POST   /api/sponsorizzazioni           -> Crea sponsorizzazione
+ * - PUT    /api/sponsorizzazioni/{id}      -> Modifica sponsorizzazione
+ * - DELETE /api/sponsorizzazioni/{id}      -> Cancella sponsorizzazione
+ * - GET    /api/sponsorizzazioni/search    -> Cerca per PIVA dello sponsor
+ */
 @RestController
 @RequestMapping("/api/sponsorizzazioni")
 public class SponsorizzazioneController {

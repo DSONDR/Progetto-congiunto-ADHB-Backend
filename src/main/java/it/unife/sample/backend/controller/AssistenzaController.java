@@ -8,6 +8,21 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import java.util.*;
 
+/**
+ * TODO, completamente da fare
+ * Controller per la gestione dei Ticket di Assistenza.
+ * Espone API per creare ticket, aggiornarli, e associarli a un utente.
+ * 
+ * API Esposte:
+ * - GET /api/assistenza -> Elenco ticket
+ * - GET /api/assistenza/{id} -> Dettaglio ticket
+ * - POST /api/assistenza -> Crea ticket
+ * - PUT /api/assistenza/{id} -> Modifica ticket
+ * - DELETE /api/assistenza/{id} -> Cancella ticket
+ * - GET /api/assistenza/stato/... -> Cerca per stato
+ * - GET /api/assistenza/tipo/... -> Cerca per tipo
+ * - POST /api/assistenza/{id}/utente -> Associa ticket a utente
+ */
 @RestController
 @RequestMapping("/api/assistenza")
 public class AssistenzaController {
@@ -71,10 +86,11 @@ public class AssistenzaController {
 
     // RELAZIONE CON UTENTE
 
-    // Associa un ticket a un utente
+    // Funzionalità: Associa un utente a un ticket di assistenza (apertura ticket
+    // loggata).
     @PostMapping("/{id}/utente/{cf}")
     public ResponseEntity<Void> addUtente(@PathVariable Long id,
-                                          @PathVariable String cf) {
+            @PathVariable String cf) {
 
         service.associaUtente(id, cf);
 

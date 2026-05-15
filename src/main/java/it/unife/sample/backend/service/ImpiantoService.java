@@ -1,4 +1,5 @@
 package it.unife.sample.backend.service;
+
 import java.util.*;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,6 +20,7 @@ public class ImpiantoService {
     @Autowired
     private AttivitaRepository arepo;
 
+    // CRUD BASE
     public List<Impianto> findAll() {
         return irepo.findAll();
     }
@@ -35,12 +37,12 @@ public class ImpiantoService {
         irepo.deleteById(id);
     }
 
-    // tipo di impianto
+    // Filtra per tipo di impianto
     public List<Impianto> findByTipoImpianto(String tipoImpianto) {
         return irepo.findByTipoImpianto(tipoImpianto);
     }
 
-    // stato impianto
+    // Filtra per stato impianto
     public List<Impianto> findByStato(String stato) {
         return irepo.findByStato(stato);
     }
@@ -48,6 +50,9 @@ public class ImpiantoService {
     // RELAZIONE CON ATTIVITA
 
     // Associo attività a impianto
+    // TODO, da usare ancora
+    // Utile se allenatore mette attività perchè nasce già con un impianto,
+    // non istruttore ce gliel'associa se impianto vuoto
     public void aggiungiAttivitaAImpianto(Long impiantoId, Long attivitaId) {
 
         Impianto impianto = irepo.findById(impiantoId).orElseThrow();
@@ -59,6 +64,7 @@ public class ImpiantoService {
     }
 
     // Lista attività di un impianto
+    // TODO, da usare ancora
     public List<Attivita> getAttivitaByImpianto(Long impiantoId) {
 
         return irepo.findById(impiantoId)

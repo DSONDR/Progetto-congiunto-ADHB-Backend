@@ -47,6 +47,7 @@ public class AssistenzaService {
     }
 
     // Ricerca ticket per soddisfazione
+    // TODO, da usare ancora
     public List<Assistenza> findBySoddisfazione(String soddisfazione) {
         return arepo.findBySoddisfazione(soddisfazione);
     }
@@ -54,6 +55,7 @@ public class AssistenzaService {
     // RELAZIONE CON UTENTE
 
     // Associo ticket a utente
+    // TODO, da usare ancora
     public void associaUtente(Long ticketId, String cf) {
 
         Assistenza assistenza = arepo.findById(ticketId).orElseThrow();
@@ -65,6 +67,7 @@ public class AssistenzaService {
     }
 
     // Ottengo utente associato al ticket
+    // TODO, da usare ancora
     public Utente getUtenteByTicket(Long ticketId) {
 
         Assistenza assistenza = arepo.findById(ticketId).orElseThrow(() -> new RuntimeException("Ticket non trovato"));

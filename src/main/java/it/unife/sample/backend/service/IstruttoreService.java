@@ -1,4 +1,5 @@
 package it.unife.sample.backend.service;
+
 import java.util.*;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -9,9 +10,10 @@ import it.unife.sample.backend.repository.IstruttoreRepository;
 
 @Service
 public class IstruttoreService {
-     @Autowired
+    @Autowired
     private IstruttoreRepository repository;
 
+    // CRUD base
     public List<Istruttore> findAll() {
         return repository.findAll();
     }

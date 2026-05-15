@@ -33,18 +33,22 @@ public class PagamentoService {
     public void deleteById(Long id) {
         repo.deleteById(id);
     }
-    
-    // Altre funzioni
+
+    // Altre funzioni, questa per i pagamenti in base alla data o all'importo
+    // Usata in ???
     public List<Pagamento> ricercaAvanzata(LocalDateTime da, LocalDateTime a, Double min, Double max) {
-        if (da != null && a != null) return repo.findByDataPagBetween(da, a);
-        if (min != null && max != null) return repo.findByImportoBetween(min, max);
+        if (da != null && a != null)
+            return repo.findByDataPagBetween(da, a);
+        if (min != null && max != null)
+            return repo.findByImportoBetween(min, max);
         return repo.findAll();
     }
 
     // Filtro per Attività
+    // Usato in ???
     public List<Pagamento> getPagamentiPerAttivita(Long idAttivita) {
         return iscRepo.findByAttivitaCodiceAtt(idAttivita).stream()
-                      .map(Iscrizione::getPagamento)
-                      .collect(Collectors.toList());
+                .map(Iscrizione::getPagamento)
+                .collect(Collectors.toList());
     }
 }

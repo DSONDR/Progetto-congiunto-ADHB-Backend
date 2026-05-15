@@ -8,6 +8,19 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import java.util.*;
 
+/**
+ * Controller per le operazioni base sugli Utenti (gestione profilo)
+ * Permette visualizzazione, modifica e cancellazione (admin)
+ * NOTA: La creazione di un Utente avviene ESCLUSIVAMENTE tramite AuthController
+ * (register),
+ * pertanto questo controller non espone chiamate POST di creazione
+ * 
+ * API Esposte:
+ * - GET /api/utenti -> Elenco di tutti gli utenti
+ * - GET /api/utenti/{id} -> Dettaglio singolo utente
+ * - PUT /api/utenti/{id} -> Modifica profilo utente
+ * - DELETE /api/utenti/{id} -> Cancellazione account
+ */
 @RestController
 @RequestMapping("/api/utenti")
 public class UtenteController {
@@ -15,6 +28,7 @@ public class UtenteController {
     @Autowired
     private UtenteService service;
 
+    // CRUD base
     @GetMapping
     public List<Utente> getAll() {
         return service.findAll();
@@ -49,10 +63,5 @@ public class UtenteController {
         }
         service.deleteById(id);
         return ResponseEntity.noContent().build();
-    }
-    
-    @GetMapping("/username/{username}")
-    public Utente findByUsername(@PathVariable String username) {
-        return service.findByUsername(username).orElse(null);
     }
 }

@@ -384,7 +384,6 @@ ERROR HANDLING:
 
 FUNZIONALITÀ COMPLETE E OPERATIVE:
 ✓ Registrazione utenti (con validazione email, password)
-✓ Autenticazione (JWT token)
 ✓ Gestione profili utente (Utente, Atleta, Istruttore)
 ✓ Creazione attività (da parte istruttori)
 ✓ Visualizzazione attività (pubblica, con ricerca e filtraggio)
@@ -406,7 +405,6 @@ INTEGRAZIONI DATABASE:
 INFRASTRUTTURA:
 ✓ Spring Boot 3.4.4
 ✓ Spring Data JPA
-✓ Spring Security (JWT)
 ✓ Spring Web (REST)
 ✓ Lombok (riduzione boilerplate)
 ✓ Gradle build system
@@ -465,6 +463,81 @@ TECHNICAL DEBT:
 - [ ] Documentation API (Swagger/OpenAPI)
 
 ================================================================================
+5. PULIZIA ARCHITETTURALE E SICUREZZA API (REFACTORING)
+================================================================================
+
+OVERVIEW:
+Il sistema è stato sottoposto a una profonda revisione per rimuovere vulnerabilità 
+esposte dai controller generati automaticamente (Scaffold) e per centralizzare
+la logica di business. Essendo un sistema senza Spring Security nativo, 
+la sicurezza è stata implementata a livello architetturale rimuovendo le 
+rotte CRUD (Create/Update/Delete) in eccesso e obbligando il frontend 
+a passare attraverso rotte specifiche validate dai Service.
+
+---
+5.1 RIMOZIONE DOPPIONI E SEMPLIFICAZIONE SERVICE
+---
+
+DECISIONE ARCHITETTURALE:
+  Eliminazione di classi, Service e Controller superflui o ridondanti 
+  per alleggerire il backend e avere una Single Source of Truth.
+
+MODIFICHE APPORTATE:
+  - Rimossi `UsaAbbController` e `UsaAbbService`: la logica di scalata
+    dell'abbonamento è stata interamente inglobata e centralizzata in `IscrizioneService`.
+  - Rimossi `DateAttController` e `DateAttService`: la gestione delle date
+    avviene automaticamente a cascata (Cascade) all'interno di `AttivitaService`.
+  - Rimosso `AttivitaController`: eliminato in favore della separazione in
+    `AttivitaGestioneController` e `AttivitaVisualizzazioneController`.
+  - Rimosso `ComposizioneSquadraController` e Service: logica inutile al momento.
+
+---
+5.2 BLOCCO DELLE API CRUD NON AUTORIZZATE (SECURITY BY DESIGN)
+---
+
+DECISIONE ARCHITETTURALE:
+  Rimozione sistematica dei metodi `@PostMapping`, `@PutMapping` e `@DeleteMapping`
+  dai controller delle entità principali per evitare che un client possa 
+  iniettare dati bypassando i controlli (es. certificato scaduto, capienza).
+
+CONTROLLER MODIFICATI:
+  • UtenteController & AtletaController
+    - RIMOSSI: Metodi create() e delete()
+    - MOTIVO: La registrazione deve avvenire obbligatoriamente tramite
+      `AuthController.register()`, che istanzia il corretto sottotipo e 
+      valida le regole.
+    
+  • PagamentoController
+    - RIMOSSI: Metodi create(), update(), delete()
+    - MOTIVO: I pagamenti sono un registro contabile immutabile. Nascono
+      solo a seguito di una `Iscrizione` o `Sottoscrizione` andata a buon fine.
+      Il Controller è ora di SOLA LETTURA.
+
+  • AbbonamentoController
+    - RIMOSSI: Metodi create(), update(), delete()
+    - MOTIVO: Gli abbonamenti (intesi come storici venduti) si creano 
+      esclusivamente tramite `SottoscrizioneController.sottoscrivi()`.
+
+  • IscrizioneController & SottoscrizioneController
+    - RIMOSSI: Metodi CRUD base generici.
+    - MOTIVO: L'iscrizione è un processo di business. Mantenuti solo 
+      gli endpoint specifici `POST /iscrivi`, `POST /usa-abbonamento` 
+      e `POST /sottoscrivi`.
+
+---
+5.3 DOCUMENTAZIONE STANDARDIZZATA (JAVADOC E FUNZIONALITÀ)
+---
+
+MODIFICHE APPORTATE:
+  ✓ Tutti i Controller esposti presentano ora un Header Javadoc
+    che mappa chiaramente le API esposte e ne definisce il perimetro 
+    (es. "Solo lettura", "Accesso Admin").
+  ✓ I metodi contenenti logica di business extra-CRUD (es. assegnare
+    un atleta a una squadra, associare un'attività a un impianto) sono
+    stati tutti taggati con un commento inline `// Funzionalità:` per
+    immediata rintracciabilità.
+
+================================================================================
 CONCLUSIONE
 ================================================================================
 
@@ -474,5 +547,16 @@ L'applicazione ha una base solida con:
   ✓ Mappatura database corretta
   ✓ Error handling robusto
   ✓ DTOs per API contracts
+  ✓ Livello Controller blindato e logiche esposte solo dove necessario
 
 ================================================================================
+USO DELL'AI
+================================================================================
+AI è stata utilizzata per ora per i tre seguenti scopi:
+ -	Generare questo file di documentazione e il file di navigabilità.mb, così che al primo caricamento
+	senza perdere ore per spiegarci a vicenda le cose, io e il mio compagno siamo sincronizzati
+ -	Generare i commenti all'inizio dei controller, a cui sono stati aggiunti a mano delle note (e modificato
+	cose troppo tecniche)
+ -	Fare velocemente modifiche insignificanti e numerose, due i casi
+ 	- Abbiamo cambiato nel database il dominio di un dato, cambiato il model e chiesto di conseguenza di cambiare le chiavate al dato 		laddove fossero compatibili
+ 	- Il primo dto l'avevo creato come metodo e non come classe, quindi poi ho fatto cambiare le firme da .nome() a .getNome()
