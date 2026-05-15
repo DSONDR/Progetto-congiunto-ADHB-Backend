@@ -558,5 +558,5 @@ AI è stata utilizzata per ora per i tre seguenti scopi:
  -	Generare i commenti all'inizio dei controller, a cui sono stati aggiunti a mano delle note (e modificato
 	cose troppo tecniche)
  -	Fare velocemente modifiche insignificanti e numerose, due i casi
- 	- Abbiamo cambiato nel database il dominio di un dato, cambiato il model e chiesto di conseguenza di cambiare le chiavate al dato 		laddove fossero compatibili
+ 	- Abbiamo cambiato nel database il dominio di un dato, cambiato il model e chiesto di conseguenza di cambiare le chiamate al dato 		laddove fossero compatibili
  	- Il primo dto l'avevo creato come metodo e non come classe, quindi poi ho fatto cambiare le firme da .nome() a .getNome()
