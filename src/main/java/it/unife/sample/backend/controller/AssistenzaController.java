@@ -1,27 +1,31 @@
 package it.unife.sample.backend.controller;
 
-import it.unife.sample.backend.model.Assistenza;
-import it.unife.sample.backend.model.Utente;
+import it.unife.sample.backend.dto.request.AssistenzaRequestDTO;
+import it.unife.sample.backend.dto.response.AssistenzaResponseDTO;
 import it.unife.sample.backend.service.AssistenzaService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import java.util.*;
+import jakarta.validation.Valid;
+import java.util.List;
 
 /**
- * TODO, completamente da fare
  * Controller per la gestione dei Ticket di Assistenza.
- * Espone API per creare ticket, aggiornarli, e associarli a un utente.
+ * Il controller aderisce alle direttive Security by Design, omettendo
+ * i CRUD classici generici e instradando le operazioni tramite le
+ * specifiche transizioni di stato.
  * 
  * API Esposte:
- * - GET /api/assistenza -> Elenco ticket
- * - GET /api/assistenza/{id} -> Dettaglio ticket
- * - POST /api/assistenza -> Crea ticket
- * - PUT /api/assistenza/{id} -> Modifica ticket
- * - DELETE /api/assistenza/{id} -> Cancella ticket
- * - GET /api/assistenza/stato/... -> Cerca per stato
- * - GET /api/assistenza/tipo/... -> Cerca per tipo
- * - POST /api/assistenza/{id}/utente -> Associa ticket a utente
+ * - POST /api/assistenza/apri -> L'utente apre il ticket
+ * - PUT /api/assistenza/{id}/prendi-in-carico/{cf} -> L'admin prende in carico
+ * - PUT /api/assistenza/{id}/risolvi -> L'admin risolve il ticket
+ * - PUT /api/assistenza/{id}/valuta/{voto} -> L'utente assegna il feedback e lo chiude
+ * 
+ * Letture (GET):
+ * - /api/assistenza -> Tutti (admin)
+ * - /api/assistenza/utente/{cf} -> Filtra per utente
+ * - /api/assistenza/assistente/{cf} -> Filtra per assistente
+ * - /api/assistenza/stato/{stato} -> Filtra per stato
  */
 @RestController
 @RequestMapping("/api/assistenza")
@@ -30,78 +34,67 @@ public class AssistenzaController {
     @Autowired
     private AssistenzaService service;
 
+    // --- LOGICHE DI SCRITTURA (FLUSSO OPERATIVO) ---
+
+    // Funzionalità: L'utente apre un nuovo ticket (Stato: IN ATTESA)
+    @PostMapping("/apri")
+    public ResponseEntity<AssistenzaResponseDTO> apriTicket(@RequestBody @Valid AssistenzaRequestDTO request) {
+        return ResponseEntity.ok(service.apriTicket(request));
+    }
+
+    // Funzionalità: Lo staff prende in carico un ticket aperto (Stato: IN LAVORAZIONE)
+    @PutMapping("/{id}/prendi-in-carico/{cfAssistente}")
+    public ResponseEntity<AssistenzaResponseDTO> prendiInCarico(@PathVariable Long id, @PathVariable String cfAssistente) {
+        return ResponseEntity.ok(service.prendiInCarico(id, cfAssistente));
+    }
+
+    // Funzionalità: Lo staff marca il ticket come completato (Stato: RISOLTO)
+    @PutMapping("/{id}/risolvi")
+    public ResponseEntity<AssistenzaResponseDTO> risolviTicket(@PathVariable Long id) {
+        return ResponseEntity.ok(service.risolviTicket(id));
+    }
+
+    // Funzionalità: L'utente assegna il voto al ticket risolto (Stato: CHIUSO)
+    @PutMapping("/{id}/valuta/{voto}")
+    public ResponseEntity<?> valutaTicket(@PathVariable Long id, @PathVariable Integer voto) {
+        try {
+            return ResponseEntity.ok(service.valutaTicket(id, voto));
+        } catch (IllegalArgumentException | IllegalStateException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+
+    // --- LOGICHE DI LETTURA ---
+
+    // Ottiene tutti i ticket
     @GetMapping
-    public List<Assistenza> getAll() {
-        return service.findAll();
+    public ResponseEntity<List<AssistenzaResponseDTO>> getAll() {
+        return ResponseEntity.ok(service.findAll());
     }
 
+    // Ottiene un ticket specifico
     @GetMapping("/{id}")
-    public ResponseEntity<Assistenza> getById(@PathVariable Long id) {
-        Optional<Assistenza> assistenza = service.findById(id);
-        return assistenza.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
+    public ResponseEntity<AssistenzaResponseDTO> getById(@PathVariable Long id) {
+        return service.findById(id)
+                .map(ResponseEntity::ok)
+                .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
-    @PostMapping
-    public Assistenza create(@RequestBody Assistenza assistenza) {
-        return service.save(assistenza);
-    }
-
-    @PutMapping("/{id}")
-    public ResponseEntity<Assistenza> update(@PathVariable Long id, @RequestBody Assistenza assistenza) {
-        if (!service.findById(id).isPresent()) {
-            return ResponseEntity.notFound().build();
-        }
-
-        assistenza.setIdTicket(id);
-        return ResponseEntity.ok(service.save(assistenza));
-    }
-
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Void> delete(@PathVariable Long id) {
-        if (!service.findById(id).isPresent()) {
-            return ResponseEntity.notFound().build();
-        }
-
-        service.deleteById(id);
-        return ResponseEntity.noContent().build();
-    }
-
-    // Ricerca ticket per stato
+    // Filtra per stato (es. IN ATTESA, IN LAVORAZIONE)
     @GetMapping("/stato/{stato}")
-    public List<Assistenza> findByStato(@PathVariable String stato) {
-        return service.findByStato(stato);
+    public ResponseEntity<List<AssistenzaResponseDTO>> getByStato(@PathVariable String stato) {
+        return ResponseEntity.ok(service.findByStato(stato));
     }
 
-    // Ricerca ticket per tipo assistenza
-    @GetMapping("/tipo/{tipoAss}")
-    public List<Assistenza> findByTipoAss(@PathVariable String tipoAss) {
-        return service.findByTipoAss(tipoAss);
+    // Mostra i ticket aperti da un determinato utente
+    @GetMapping("/utente/{cf}")
+    public ResponseEntity<List<AssistenzaResponseDTO>> getByUtente(@PathVariable String cf) {
+        return ResponseEntity.ok(service.findByUtente(cf));
     }
 
-    // Ricerca ticket per soddisfazione
-    @GetMapping("/soddisfazione/{soddisfazione}")
-    public List<Assistenza> findBySoddisfazione(@PathVariable String soddisfazione) {
-        return service.findBySoddisfazione(soddisfazione);
+    // Mostra i ticket presi in carico da un determinato assistente
+    @GetMapping("/assistente/{cf}")
+    public ResponseEntity<List<AssistenzaResponseDTO>> getByAssistente(@PathVariable String cf) {
+        return ResponseEntity.ok(service.findByAssistente(cf));
     }
-
-    // RELAZIONE CON UTENTE
-
-    // Funzionalità: Associa un utente a un ticket di assistenza (apertura ticket
-    // loggata).
-    @PostMapping("/{id}/utente/{cf}")
-    public ResponseEntity<Void> addUtente(@PathVariable Long id,
-            @PathVariable String cf) {
-
-        service.associaUtente(id, cf);
-
-        return ResponseEntity.ok().build();
-    }
-
-    // Ottengo l'utente associato al ticket
-    @GetMapping("/{id}/utente")
-    public Utente getUtente(@PathVariable Long id) {
-
-        return service.getUtenteByTicket(id);
-    }
-
 }
