@@ -33,7 +33,7 @@ public class AttivitaGestioneController {
 
     @PostMapping
     public ResponseEntity<AttivitaResponseDTO> create(@Valid @RequestBody AttivitaRequestDTO dto) {
-        // Il frontend ......
+        // NB: Il frontend dovrà inviare le credenziali istruttore nel JSON
         try {
             return ResponseEntity.ok(service.create(dto));
         } catch (IllegalArgumentException e) {
