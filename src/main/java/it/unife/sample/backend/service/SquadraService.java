@@ -27,7 +27,7 @@ public class SquadraService {
     private AtletaRepository atlRepo;
 
     @Autowired
-    private UtenteRepository uRepo;
+    private AllenatoreRepository allenatoreRepo;
 
     // Mapper interno per SquadraResponseDTO
     private SquadraResponseDTO mapToDTO(Squadra sq) {
@@ -80,7 +80,7 @@ public class SquadraService {
 
     @Transactional
     public SquadraResponseDTO creaSquadra(SquadraRequestDTO dto) {
-        Allenatore allenatore = (Allenatore) uRepo.findById(dto.getAllenatoreCf())
+        Allenatore allenatore = allenatoreRepo.findById(dto.getAllenatoreCf())
                 .orElseThrow(() -> new IllegalArgumentException("Allenatore non trovato"));
                 
         Squadra sq = new Squadra();
@@ -97,7 +97,7 @@ public class SquadraService {
         Squadra sq = sqRepo.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Squadra non trovata"));
         
-        Allenatore allenatore = (Allenatore) uRepo.findById(dto.getAllenatoreCf())
+        Allenatore allenatore = allenatoreRepo.findById(dto.getAllenatoreCf())
                 .orElseThrow(() -> new IllegalArgumentException("Allenatore non trovato"));
 
         sq.setNome(dto.getNome());
