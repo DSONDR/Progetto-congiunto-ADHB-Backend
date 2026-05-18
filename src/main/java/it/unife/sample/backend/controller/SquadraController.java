@@ -84,6 +84,9 @@ public class SquadraController {
     // Funzionalità: Scioglimento di una squadra.
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(@PathVariable Long id) {
+        if (!service.findById(id).isPresent()) {
+            return ResponseEntity.notFound().build();
+        }
         service.deleteById(id);
         return ResponseEntity.noContent().build();
     }
