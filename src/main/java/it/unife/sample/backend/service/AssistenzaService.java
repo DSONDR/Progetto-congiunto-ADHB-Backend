@@ -1,78 +1,140 @@
 package it.unife.sample.backend.service;
 
 import java.util.*;
-
+import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import it.unife.sample.backend.model.Assistenza;
 import it.unife.sample.backend.model.Utente;
-
 import it.unife.sample.backend.repository.AssistenzaRepository;
 import it.unife.sample.backend.repository.UtenteRepository;
+import it.unife.sample.backend.dto.request.AssistenzaRequestDTO;
+import it.unife.sample.backend.dto.response.AssistenzaResponseDTO;
 
 @Service
 public class AssistenzaService {
 
     @Autowired
-    private AssistenzaRepository arepo;
+    private AssistenzaRepository aRepo;
 
     @Autowired
-    private UtenteRepository urepo;
+    private UtenteRepository uRepo;
 
-    public List<Assistenza> findAll() {
-        return arepo.findAll();
+    // Mapper interno Entity -> ResponseDTO
+    private AssistenzaResponseDTO mapToDTO(Assistenza a) {
+        AssistenzaResponseDTO dto = new AssistenzaResponseDTO();
+        dto.setIdTicket(a.getIdTicket());
+        dto.setOggetto(a.getOggetto());
+        dto.setTipoAss(a.getTipoAss());
+        dto.setStato(a.getStato());
+        dto.setSoddisfazione(a.getSoddisfazione());
+        if (a.getUtente() != null) {
+            dto.setUtenteCf(a.getUtente().getCf());
+        }
+        if (a.getAssistente() != null) {
+            dto.setAssistenteCf(a.getAssistente().getCf());
+        }
+        return dto;
     }
 
-    public Optional<Assistenza> findById(Long id) {
-        return arepo.findById(id);
+    // Lettura (Admin)
+    public List<AssistenzaResponseDTO> findAll() {
+        return aRepo.findAll().stream().map(this::mapToDTO).collect(Collectors.toList());
     }
 
-    public Assistenza save(Assistenza assistenza) {
-        return arepo.save(assistenza);
+    public Optional<AssistenzaResponseDTO> findById(Long id) {
+        return aRepo.findById(id).map(this::mapToDTO);
     }
 
-    public void deleteById(Long id) {
-        arepo.deleteById(id);
+    // Lettura filtrata
+    public List<AssistenzaResponseDTO> findByStato(String stato) {
+        return aRepo.findByStato(stato).stream().map(this::mapToDTO).collect(Collectors.toList());
     }
 
-    // Ricerca ticket per stato
-    public List<Assistenza> findByStato(String stato) {
-        return arepo.findByStato(stato);
+    public List<AssistenzaResponseDTO> findByUtente(String cf) {
+        return aRepo.findByUtenteCf(cf).stream().map(this::mapToDTO).collect(Collectors.toList());
     }
 
-    // Ricerca ticket per tipo assistenza
-    public List<Assistenza> findByTipoAss(String tipoAss) {
-        return arepo.findByTipoAss(tipoAss);
+    public List<AssistenzaResponseDTO> findByAssistente(String cf) {
+        return aRepo.findByAssistenteCf(cf).stream().map(this::mapToDTO).collect(Collectors.toList());
     }
 
-    // Ricerca ticket per soddisfazione
-    // TODO, da usare ancora
-    public List<Assistenza> findBySoddisfazione(String soddisfazione) {
-        return arepo.findBySoddisfazione(soddisfazione);
+    // OPERAZIONI DI BUSINESS SUI TICKET
+
+    /**
+     * 1. Apertura: L'utente apre il ticket (IN ATTESA)
+     */
+    @Transactional
+    public AssistenzaResponseDTO apriTicket(AssistenzaRequestDTO dto) {
+        Utente utente = uRepo.findById(dto.getUtenteCf())
+                .orElseThrow(() -> new IllegalArgumentException("Utente non trovato"));
+
+        Assistenza a = new Assistenza();
+        a.setUtente(utente);
+        a.setOggetto(dto.getOggetto());
+        a.setTipoAss(dto.getTipoAss());
+        a.setStato("IN ATTESA");
+        a.setSoddisfazione(null);
+        a.setAssistente(null);
+
+        return mapToDTO(aRepo.save(a));
     }
 
-    // RELAZIONE CON UTENTE
+    /**
+     * 2. Presa in carico: Un admin/staff si assegna il ticket (IN LAVORAZIONE)
+     */
+    @Transactional
+    public AssistenzaResponseDTO prendiInCarico(Long idTicket, String assistenteCf) {
+        Assistenza a = aRepo.findById(idTicket)
+                .orElseThrow(() -> new IllegalArgumentException("Ticket non trovato"));
+        
+        Utente assistente = uRepo.findById(assistenteCf)
+                .orElseThrow(() -> new IllegalArgumentException("Assistente non trovato"));
 
-    // Associo ticket a utente
-    // TODO, da usare ancora
-    public void associaUtente(Long ticketId, String cf) {
+        if (!"IN ATTESA".equals(a.getStato())) {
+            throw new IllegalStateException("Solo i ticket IN ATTESA possono essere presi in carico");
+        }
 
-        Assistenza assistenza = arepo.findById(ticketId).orElseThrow();
-
-        Utente utente = urepo.findById(cf).orElseThrow();
-
-        assistenza.setUtente(utente);
-        arepo.save(assistenza);
+        a.setAssistente(assistente);
+        a.setStato("IN LAVORAZIONE");
+        return mapToDTO(aRepo.save(a));
     }
 
-    // Ottengo utente associato al ticket
-    // TODO, da usare ancora
-    public Utente getUtenteByTicket(Long ticketId) {
+    /**
+     * 3. Risoluzione: L'assistente chiude l'intervento (RISOLTO)
+     */
+    @Transactional
+    public AssistenzaResponseDTO risolviTicket(Long idTicket) {
+        Assistenza a = aRepo.findById(idTicket)
+                .orElseThrow(() -> new IllegalArgumentException("Ticket non trovato"));
 
-        Assistenza assistenza = arepo.findById(ticketId).orElseThrow(() -> new RuntimeException("Ticket non trovato"));
+        if (!"IN LAVORAZIONE".equals(a.getStato())) {
+            throw new IllegalStateException("Solo i ticket IN LAVORAZIONE possono essere risolti");
+        }
 
-        return assistenza.getUtente();
+        a.setStato("RISOLTO");
+        return mapToDTO(aRepo.save(a));
     }
 
+    /**
+     * 4. Valutazione: L'utente valuta l'assistenza (CHIUSO)
+     */
+    @Transactional
+    public AssistenzaResponseDTO valutaTicket(Long idTicket, Integer voto) {
+        Assistenza a = aRepo.findById(idTicket)
+                .orElseThrow(() -> new IllegalArgumentException("Ticket non trovato"));
+
+        if (!"RISOLTO".equals(a.getStato())) {
+            throw new IllegalStateException("Solo i ticket RISOLTI possono essere valutati");
+        }
+        if (voto == null || voto < 1 || voto > 5) {
+            throw new IllegalArgumentException("Il voto deve essere compreso tra 1 e 5");
+        }
+
+        a.setSoddisfazione(voto);
+        a.setStato("CHIUSO");
+        return mapToDTO(aRepo.save(a));
+    }
 }
