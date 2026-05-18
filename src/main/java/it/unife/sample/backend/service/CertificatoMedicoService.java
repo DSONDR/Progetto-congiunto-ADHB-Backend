@@ -30,8 +30,9 @@ public class CertificatoMedicoService {
         repository.deleteById(id);
     }
 
-    // Funzionalità collegamento atleta
-    // TODO, da usare ancora
+    // Recupera tutti i certificati medici di un atleta dato il CF
+    // Usato da IscrizioneService (validazione iscrizione) e SottoscrizioneService
+    // (validazione acquisto abbonamento)
     public List<CertificatoMedico> findByUtenteCf(String cf) {
         return repository.findByUtenteCf(cf);
     }

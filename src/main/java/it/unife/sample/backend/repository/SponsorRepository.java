@@ -15,4 +15,10 @@ public interface SponsorRepository extends JpaRepository<Sponsor, String> {
     // ricerca sponsor per partita iva
     List<Sponsor> findByPIva(String pIva);
 
+    // ricerca sponsor che sponsorizzano una determinata squadra
+    List<Sponsor> findBySquadreId(Long idSquadra);
+
+    // ricerca sponsor che sponsorizzano un determinato impianto
+    List<Sponsor> findByImpiantiId(Long idImpianto);
+
 }

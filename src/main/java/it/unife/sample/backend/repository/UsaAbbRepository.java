@@ -4,6 +4,7 @@ package it.unife.sample.backend.repository; // Cartella repository
 import it.unife.sample.backend.model.UsaAbb;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
+import java.util.Optional;
 
 import it.unife.sample.backend.model.UsaAbbId;
 
@@ -17,4 +18,7 @@ public interface UsaAbbRepository extends JpaRepository<UsaAbb, UsaAbbId> {
     // Conta quante volte è stato utilizzato un abbonamento
     // (in totale, non per attività)
     long countByAbbonamentoNumeroAbb(Long numeroAbb);
+
+    // Cerca un uso abbonamento tramite QR code
+    Optional<UsaAbb> findByQrCode(String qrCode);
 }

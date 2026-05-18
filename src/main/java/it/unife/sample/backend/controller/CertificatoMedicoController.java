@@ -9,15 +9,14 @@ import java.util.*;
 
 /**
  * Controller per la gestione dei Certificati Medici degli Atleti.
- * Espone API per la creazione, aggiornamento e interrogazione dei certificati.
- * 
+ * Consente il caricamento di un nuovo certificato e la visualizzazione
+ * dello storico per atleta. Modifiche e cancellazioni non sono permesse:
+ * i certificati sono documenti storici immutabili.
+ *
  * API Esposte:
- * - GET    /api/certificati-medici         -> Elenco certificati
- * - GET    /api/certificati-medici/{id}    -> Dettaglio certificato
- * - POST   /api/certificati-medici         -> Crea certificato
- * - PUT    /api/certificati-medici/{id}    -> Modifica certificato
- * - DELETE /api/certificati-medici/{id}    -> Cancella certificato
- * - GET    /api/certificati-medici/search  -> Cerca certificati per atleta (cf)
+ * - POST /api/certificati-medici -> Carica un nuovo certificato
+ * - GET /api/certificati-medici/{id} -> Dettaglio certificato
+ * - GET /api/certificati-medici/search?cf= -> Storico certificati per atleta
  */
 @RestController
 @RequestMapping("/api/certificati-medici")
@@ -26,9 +25,13 @@ public class CertificatoMedicoController {
     @Autowired
     private CertificatoMedicoService service;
 
-    @GetMapping
-    public List<CertificatoMedico> getAll() {
-        return service.findAll();
+    // Carica un nuovo certificato medico per un atleta
+    // Il frontend invia manualmente i dati (tipo, date, medico) letti dal documento
+    // Probabilmente inseriti a mano, ma migliorabile con tecnologia di IA
+    // che legga il documento
+    @PostMapping
+    public CertificatoMedico create(@RequestBody CertificatoMedico certificato) {
+        return service.save(certificato);
     }
 
     @GetMapping("/{id}")
@@ -38,29 +41,7 @@ public class CertificatoMedicoController {
                 .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
-    @PostMapping
-    public CertificatoMedico create(@RequestBody CertificatoMedico certificato) {
-        return service.save(certificato);
-    }
-
-    @PutMapping("/{id}")
-    public ResponseEntity<CertificatoMedico> update(@PathVariable Long id, @RequestBody CertificatoMedico certificato) {
-        if (!service.findById(id).isPresent()) {
-            return ResponseEntity.notFound().build();
-        }
-        certificato.setIdCertificato(id);
-        return ResponseEntity.ok(service.save(certificato));
-    }
-
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Void> delete(@PathVariable Long id) {
-        if (!service.findById(id).isPresent()) {
-            return ResponseEntity.notFound().build();
-        }
-        service.deleteById(id);
-        return ResponseEntity.noContent().build();
-    }
-
+    // Funzionalità: Visualizza lo storico dei certificati medici di un atleta
     @GetMapping("/search")
     public List<CertificatoMedico> getByUtenteCf(@RequestParam String cf) {
         return service.findByUtenteCf(cf);

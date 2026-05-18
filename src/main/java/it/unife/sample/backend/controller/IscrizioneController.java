@@ -8,11 +8,15 @@ import it.unife.sample.backend.model.IscrSingolaId;
 import it.unife.sample.backend.model.Iscrizione;
 import it.unife.sample.backend.model.Atleta;
 import it.unife.sample.backend.model.UsaAbb;
+import it.unife.sample.backend.dto.response.QrCodeValidationResponseDTO;
 import it.unife.sample.backend.service.AbbonamentoService;
 import it.unife.sample.backend.service.AttivitaService;
 import it.unife.sample.backend.service.IscrizioneService;
+import it.unife.sample.backend.service.QrCodeService;
 import it.unife.sample.backend.service.AtletaService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import java.util.*;
@@ -46,6 +50,9 @@ public class IscrizioneController {
 
     @Autowired
     private AbbonamentoService abbonamentoService;
+
+    @Autowired
+    private QrCodeService qrCodeService;
 
     // Recupera l'elenco di tutte le iscrizioni singole
     @GetMapping
@@ -104,9 +111,52 @@ public class IscrizioneController {
         return ResponseEntity.ok(uso);
     }
 
-    // Funzionalità: Visualizza tutte le attività a cui si è iscritto l'atleta.
+    // Visualizza tutte le attività a cui si è iscritto l'atleta.
     @GetMapping("/utente/{cf}")
     public List<Iscrizione> getByUtente(@PathVariable String cf) {
         return service.getStoricoUtente(cf);
+    }
+
+    // Funzionalità: Validazione QR code per iscrizione o uso abbonamento.
+    // Il controller riceve due tipi opzionali dal service:
+    // 1) Optional<Iscrizione> da service.findByQrCode(codice)
+    // 2) Optional<UsaAbb> da service.findUsoByQrCode(codice)
+    // Se il primo Optional è presente, il codice è di una iscrizione singola.
+    // Altrimenti prova il secondo Optional per vedere se è un uso abbonamento.
+    @GetMapping("/qr/{codice}")
+    public ResponseEntity<QrCodeValidationResponseDTO> validateQrCode(@PathVariable String codice) {
+        return service.findByQrCode(codice)
+                .map(iscrizione -> ResponseEntity.ok(new QrCodeValidationResponseDTO(
+                        "ISCRIZIONE",
+                        iscrizione.getQrCode(),
+                        iscrizione.getUtente().getCf(),
+                        iscrizione.getAttivita().getCodiceAtt(),
+                        iscrizione.getPagamento().getIdPagamento(),
+                        null,
+                        iscrizione.getDataIscr())))
+                .or(() -> service.findUsoByQrCode(codice)
+                        .map(uso -> ResponseEntity.ok(new QrCodeValidationResponseDTO(
+                                "USO_ABBONAMENTO",
+                                uso.getQrCode(),
+                                uso.getUtente().getCf(),
+                                uso.getAttivita().getCodiceAtt(),
+                                null,
+                                uso.getAbbonamento().getNumeroAbb(),
+                                uso.getDataUso()))))
+                .orElseGet(() -> ResponseEntity.notFound().build());
+    }
+
+    // Funzionalità: Generazione immagine QR. Chiamato dal frontend solo quando
+    // serve mostrare o scaricare l'immagine, indipendentemente dalla validazione.
+    @GetMapping(value = "/qr/{codice}/immagine", produces = MediaType.IMAGE_PNG_VALUE)
+    public ResponseEntity<byte[]> getQrCodeImage(@PathVariable String codice) {
+        boolean found = service.findByQrCode(codice).isPresent() || service.findUsoByQrCode(codice).isPresent();
+        if (!found) {
+            return ResponseEntity.notFound().build();
+        }
+        byte[] image = qrCodeService.generateQrCodeImage(codice, 300, 300);
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_TYPE, MediaType.IMAGE_PNG_VALUE)
+                .body(image);
     }
 }

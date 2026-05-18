@@ -18,7 +18,7 @@ public class Abbonamento {
     @Column(name = "Numero_Abb", nullable = false, unique = true)
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long numeroAbb;
-    
+
     @Column(name = "Data_Inizio")
     @NotNull(message = "Inizio obbligatorio")
     private LocalDate dataInizio;
@@ -27,7 +27,7 @@ public class Abbonamento {
     @Column(name = "Tipo_Abb")
     @NotBlank(message = "Tipo obbligatorio")
     private String tipoAbb;
-    
+
     @Column(name = "Ingressi_Effettuati")
     private Integer ingressiEffettuati;
     @Column(name = "Stato_Abb")

@@ -1,8 +1,11 @@
 package it.unife.sample.backend.service;
 
+import java.time.LocalDate;
 import java.util.*;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import it.unife.sample.backend.model.Abbonamento;
 import it.unife.sample.backend.repository.AbbonamentoRepository;
 import it.unife.sample.backend.dto.response.TipoAbbonamentoDTO;
@@ -28,6 +31,41 @@ public class AbbonamentoService {
 
     public void deleteById(Long id) {
         repo.deleteById(id);
+    }
+
+    // Recupera tutti gli abbonamenti di un atleta specifico
+    // Usato da SottoscrizioneController nella visualizzazione abbonamenti
+    // dell'atleta
+    public List<Abbonamento> findByAtletaCf(String cf) {
+        return repo.findByAtletaCf(cf);
+    }
+
+    // Task schedulato: ogni giorno a mezzanotte controlla gli abbonamenti TEMPO
+    // con data di scadenza passata e li segna come SCADUTO automaticamente
+    @Scheduled(cron = "0 0 0 * * *")
+    @Transactional
+    public void aggiornaScaduti() {
+        // 1. TEMPO: scaduti per data
+        List<Abbonamento> scadutiPerData = repo.findByStatoAbbAndDataScadenzaBefore("ATTIVO", LocalDate.now());
+        for (Abbonamento a : scadutiPerData) {
+            a.setStatoAbb("SCADUTO");
+            repo.save(a);
+        }
+
+        // 2. INGRESSI: esauriti per numero di accessi
+        // Cerca abbonamenti ATTIVO senza dataScadenza (proxy per tipo INGRESSI)
+        // e verifica ingressiEffettuati rispetto al maxIngressi del listino
+        List<Abbonamento> candidatiIngressi = repo.findByStatoAbbAndDataScadenzaIsNull("ATTIVO");
+        for (Abbonamento a : candidatiIngressi) {
+            if (a.getIngressiEffettuati() == null)
+                continue;
+            getDettagliTipo(a.getTipoAbb()).ifPresent(tipo -> {
+                if (tipo.getMaxIngressi() != null && a.getIngressiEffettuati() >= tipo.getMaxIngressi()) {
+                    a.setStatoAbb("SCADUTO");
+                    repo.save(a);
+                }
+            });
+        }
     }
 
     // Metodo di Gestione tipi abbonamento - Crea una lista (finta)

@@ -20,12 +20,12 @@ import java.util.*;
  * - POST /api/sponsor -> Crea sponsor
  * - PUT /api/sponsor/{id} -> Modifica sponsor
  * - DELETE /api/sponsor/{id} -> Cancella sponsor
- * - GET /api/sponsor/azienda/{azienda} -> Cerca per nome azienda
- * - GET /api/sponsor/piva/{pIva} -> Cerca per partita IVA
  * - POST /api/sponsor/{id}/squadre/{idSquadra} -> Associa sponsor a squadra
- * - GET /api/sponsor/{id}/squadre -> Visualizza squadre sponsorizzate
+ * - GET /api/sponsor/{id}/squadre -> Elenca squadre sponsorizzate
+ * - GET /api/sponsor/squadra/{idSquadra} -> Elenca sponsor di una squadra
  * - POST /api/sponsor/{id}/impianti/{idImpianto} -> Associa sponsor a impianto
- * - GET /api/sponsor/{id}/impianti -> Visualizza impianti sponsorizzati
+ * - GET /api/sponsor/{id}/impianti -> Elenca impianti sponsorizzati
+ * - GET /api/sponsor/impianto/{idImpianto} -> Elenca sponsor di un impianto
  */
 @RestController
 @RequestMapping("/api/sponsor")
@@ -63,25 +63,11 @@ public class SponsorController {
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(@PathVariable String id) {
-
         if (!service.findById(id).isPresent()) {
             return ResponseEntity.notFound().build();
         }
-
         service.deleteById(id);
         return ResponseEntity.noContent().build();
-    }
-
-    // Ricerca sponsor per azienda
-    @GetMapping("/azienda/{azienda}")
-    public List<Sponsor> findByAzienda(@PathVariable String azienda) {
-        return service.findByAzienda(azienda);
-    }
-
-    // Ricerca sponsor per partita iva
-    @GetMapping("/piva/{pIva}")
-    public List<Sponsor> findByPIva(@PathVariable String pIva) {
-        return service.findByPIva(pIva);
     }
 
     // RELAZIONE CON SQUADRA
@@ -97,8 +83,13 @@ public class SponsorController {
     // Ottengo tutte le squadre sponsorizzate
     @GetMapping("/{id}/squadre")
     public List<Squadra> getSquadre(@PathVariable String id) {
-
         return service.getSquadreBySponsor(id);
+    }
+
+    // Ottengo gli sponsor che sponsorizzano una determinata squadra
+    @GetMapping("/squadra/{idSquadra}")
+    public List<Sponsor> getBySquadra(@PathVariable Long idSquadra) {
+        return service.findBySquadraId(idSquadra);
     }
 
     // RELAZIONE CON IMPIANTO
@@ -107,17 +98,20 @@ public class SponsorController {
     @PostMapping("/{id}/impianti/{idImpianto}")
     public ResponseEntity<Void> addImpianto(@PathVariable String id,
             @PathVariable Long idImpianto) {
-
         service.aggiungiSponsorAImpianto(id, idImpianto);
-
         return ResponseEntity.ok().build();
     }
 
     // Ottengo tutti gli impianti sponsorizzati
     @GetMapping("/{id}/impianti")
     public List<Impianto> getImpianti(@PathVariable String id) {
-
         return service.getImpiantiBySponsor(id);
+    }
+
+    // Ottengo gli sponsor che sponsorizzano un determinato impianto
+    @GetMapping("/impianto/{idImpianto}")
+    public List<Sponsor> getByImpianto(@PathVariable Long idImpianto) {
+        return service.findByImpiantoId(idImpianto);
     }
 
 }

@@ -33,12 +33,14 @@ public interface AttivitaRepository extends JpaRepository<Attivita, Long> {
                      "(:prezzo IS NULL OR a.quotaBase <= :prezzo) AND " +
                      "(:target IS NULL OR a.destinatario = :target) AND " +
                      "(:tipoEvento IS NULL OR a.tipoEvento = :tipoEvento) AND " +
+                     "(:istruttoreCf IS NULL OR a.istruttore.cf = :istruttoreCf) AND " +
                      "(:inizio IS NULL OR d.date >= :inizio) AND " +
                      "(:fine IS NULL OR d.date <= :fine)")
        List<Attivita> findFiltered(@Param("impiantoId") Long impiantoId,
                      @Param("prezzo") Double prezzo,
                      @Param("target") String target,
                      @Param("tipoEvento") String tipoEvento,
+                     @Param("istruttoreCf") String istruttoreCf,
                      @Param("inizio") LocalDateTime inizio,
                      @Param("fine") LocalDateTime fine);
 

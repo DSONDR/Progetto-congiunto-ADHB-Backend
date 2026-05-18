@@ -13,9 +13,11 @@ import it.unife.sample.backend.dto.request.AttivitaRequestDTO;
 import it.unife.sample.backend.dto.response.AttivitaResponseDTO;
 import it.unife.sample.backend.model.Attivita;
 import it.unife.sample.backend.model.DateAtt;
+import it.unife.sample.backend.model.DateAttId;
 import it.unife.sample.backend.model.Impianto;
 import it.unife.sample.backend.model.Istruttore;
 import it.unife.sample.backend.repository.AttivitaRepository;
+import it.unife.sample.backend.repository.DateAttRepository;
 import it.unife.sample.backend.repository.IscrizioneRepository;
 import it.unife.sample.backend.repository.UsaAbbRepository;
 
@@ -24,6 +26,9 @@ public class AttivitaService {
 
     @Autowired
     private AttivitaRepository repo;
+
+    @Autowired
+    private DateAttRepository dateAttRepo;
 
     @Autowired
     private IscrizioneRepository iscRepo;
@@ -129,10 +134,10 @@ public class AttivitaService {
                 .collect(Collectors.toList());
     }
 
-    // Ricerca avanzata con più parametri
+    // Ricerca avanzata con più parametri (incluso istruttore)
     public List<AttivitaResponseDTO> filtra(Long idImpianto, Double prezzo, String target, String tipoEvento,
-            LocalDateTime inizio, LocalDateTime fine) {
-        return repo.findFiltered(idImpianto, prezzo, target, tipoEvento, inizio, fine).stream()
+            String istruttoreCf, LocalDateTime inizio, LocalDateTime fine) {
+        return repo.findFiltered(idImpianto, prezzo, target, tipoEvento, istruttoreCf, inizio, fine).stream()
                 .map(this::mapToResponse)
                 .collect(Collectors.toList());
     }
@@ -209,5 +214,49 @@ public class AttivitaService {
                 .collect(Collectors.toList()));
 
         return dto;
+    }
+
+    // Funzionalità: Aggiunta di una singola sessione (data/orario) a un'attività
+    // esistente
+    // Controlla che l'impianto non sia già occupato in quella data prima di
+    // aggiungerla
+    @Transactional
+    public AttivitaResponseDTO addSessione(Long idAttivita, LocalDateTime data) {
+        Attivita attivita = repo.findById(idAttivita)
+                .orElseThrow(() -> new IllegalArgumentException("Attività non trovata: " + idAttivita));
+
+        // Controlla sovrapposizione impianto per la singola data
+        boolean isOccupato = repo.existsByImpiantoAndDateOverlapExcluding(
+                attivita.getImpianto().getId(), idAttivita, List.of(data));
+        if (isOccupato) {
+            throw new IllegalStateException(
+                    "L'impianto è già occupato in questa data: " + data);
+        }
+
+        // Aggiunge la nuova sessione alla lista (cascade salva automaticamente)
+        DateAtt nuovaSessione = new DateAtt(data, attivita);
+        attivita.getDateAtts().add(nuovaSessione);
+        Attivita saved = repo.save(attivita);
+        return mapToResponse(saved);
+    }
+
+    // Funzionalità: Rimozione di una singola sessione (data/orario) da un'attività
+    // esistente
+    // Lancia eccezione se la data non è presente nell'attività
+    @Transactional
+    public AttivitaResponseDTO removeSessione(Long idAttivita, LocalDateTime data) {
+        Attivita attivita = repo.findById(idAttivita)
+                .orElseThrow(() -> new IllegalArgumentException("Attività non trovata: " + idAttivita));
+
+        DateAttId dateAttId = new DateAttId(data, idAttivita);
+        if (!dateAttRepo.existsById(dateAttId)) {
+            throw new IllegalArgumentException("Sessione non trovata per la data: " + data);
+        }
+
+        // Rimuove dalla lista (orphanRemoval=true su Attivita cancella automaticamente
+        // da DB)
+        attivita.getDateAtts().removeIf(d -> d.getDate().equals(data));
+        Attivita saved = repo.save(attivita);
+        return mapToResponse(saved);
     }
 }

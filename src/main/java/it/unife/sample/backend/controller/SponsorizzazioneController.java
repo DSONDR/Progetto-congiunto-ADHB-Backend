@@ -18,6 +18,8 @@ import java.util.*;
  * - PUT    /api/sponsorizzazioni/{id}      -> Modifica sponsorizzazione
  * - DELETE /api/sponsorizzazioni/{id}      -> Cancella sponsorizzazione
  * - GET    /api/sponsorizzazioni/search    -> Cerca per PIVA dello sponsor
+ * - GET    /api/sponsorizzazioni/squadra/{idSquadra} -> Cerca per squadra
+ * - GET    /api/sponsorizzazioni/impianto/{idImpianto} -> Cerca per impianto
  */
 @RestController
 @RequestMapping("/api/sponsorizzazioni")
@@ -64,5 +66,15 @@ public class SponsorizzazioneController {
     @GetMapping("/search")
     public List<Sponsorizzazione> getBySponsor(@RequestParam String pIva) {
         return service.findBySponsorPIva(pIva);
+    }
+
+    @GetMapping("/squadra/{idSquadra}")
+    public List<Sponsorizzazione> getBySquadra(@PathVariable Long idSquadra) {
+        return service.findBySquadraId(idSquadra);
+    }
+
+    @GetMapping("/impianto/{idImpianto}")
+    public List<Sponsorizzazione> getByImpianto(@PathVariable Long idImpianto) {
+        return service.findByImpiantoId(idImpianto);
     }
 }

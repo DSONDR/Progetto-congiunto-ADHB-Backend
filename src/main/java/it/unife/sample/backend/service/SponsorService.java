@@ -4,6 +4,7 @@ import java.util.*;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import it.unife.sample.backend.model.Sponsor;
 import it.unife.sample.backend.model.Squadra;
@@ -41,7 +42,7 @@ public class SponsorService {
         srepo.deleteById(id);
     }
 
-    // Metodi di ricerca, TODO, ancora tutti da usare
+    // Metodi di ricerca
     // Ricerca sponsor per azienda
     public List<Sponsor> findByAzienda(String azienda) {
         return srepo.findByAzienda(azienda);
@@ -54,11 +55,13 @@ public class SponsorService {
 
     // RELAZIONE CON SQUADRA
     // Associo sponsor a squadra
+    @Transactional
     public void aggiungiSponsorASquadra(String sponsorId, Long squadraId) {
+        Sponsor sponsor = srepo.findById(sponsorId)
+                .orElseThrow(() -> new IllegalArgumentException("Sponsor non trovato"));
 
-        Sponsor sponsor = srepo.findById(sponsorId).orElseThrow();
-
-        Squadra squadra = sqrepo.findById(squadraId).orElseThrow();
+        Squadra squadra = sqrepo.findById(squadraId)
+                .orElseThrow(() -> new IllegalArgumentException("Squadra non trovata"));
 
         sponsor.getSquadre().add(squadra);
         srepo.save(sponsor);
@@ -66,16 +69,17 @@ public class SponsorService {
 
     // Lista squadre sponsorizzate
     public List<Squadra> getSquadreBySponsor(String sponsorId) {
-
         return srepo.findById(sponsorId).map(Sponsor::getSquadre).orElse(new ArrayList<>());
     }
 
     // RELAZIONE CON IMPIANTO
     // Associo sponsor a impianto
+    @Transactional
     public void aggiungiSponsorAImpianto(String sponsorId, Long impiantoId) {
-
-        Sponsor sponsor = srepo.findById(sponsorId).orElseThrow();
-        Impianto impianto = irepo.findById(impiantoId).orElseThrow();
+        Sponsor sponsor = srepo.findById(sponsorId)
+                .orElseThrow(() -> new IllegalArgumentException("Sponsor non trovato"));
+        Impianto impianto = irepo.findById(impiantoId)
+                .orElseThrow(() -> new IllegalArgumentException("Impianto non trovato"));
 
         sponsor.getImpianti().add(impianto);
         srepo.save(sponsor);
@@ -83,8 +87,17 @@ public class SponsorService {
 
     // Lista impianti sponsorizzati
     public List<Impianto> getImpiantiBySponsor(String sponsorId) {
-
         return srepo.findById(sponsorId).map(Sponsor::getImpianti).orElse(new ArrayList<>());
+    }
+
+    // Cerca sponsor tramite squadra sponsorizzata
+    public List<Sponsor> findBySquadraId(Long idSquadra) {
+        return srepo.findBySquadreId(idSquadra);
+    }
+
+    // Cerca sponsor tramite impianto sponsorizzato
+    public List<Sponsor> findByImpiantoId(Long idImpianto) {
+        return srepo.findByImpiantiId(idImpianto);
     }
 
 }

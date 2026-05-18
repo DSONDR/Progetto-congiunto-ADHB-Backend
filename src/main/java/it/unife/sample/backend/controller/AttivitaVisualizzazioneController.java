@@ -12,14 +12,14 @@ import java.util.List;
 /**
  * Controller per la visualizzazione delle attività (ACCESSO PUBBLICO).
  * Consente ricerca, filtri e visualizzazione calendario.
- * 
+ *
  * API:
- * - GET    /api/attivita                  → lista tutte le attività
- * - GET    /api/attivita/{id}             → dettagli attività
- * - GET    /api/attivita/calendario       → attività tra due date
- * - GET    /api/attivita/filtra           → filtro per data/tipo/destinatario/prezzo
- * - GET    /api/attivita/{id}/posti-disponibili → verifica disponibilità
- * - GET    /api/attivita/{id}/iscritti    → numero iscritti
+ * - GET    /api/attivita                           -> lista tutte le attività
+ * - GET    /api/attivita/{id}                      -> dettagli attività
+ * - GET    /api/attivita/calendario                -> attività tra due date
+ * - GET    /api/attivita/filtra                    -> filtro per data/tipo/destinatario/prezzo/istruttore
+ * - GET    /api/attivita/{id}/posti-disponibili    -> verifica disponibilità
+ * - GET    /api/attivita/{id}/iscritti             -> numero iscritti
  */
 @RestController
 @RequestMapping("/api/attivita")
@@ -53,9 +53,10 @@ public class AttivitaVisualizzazioneController {
             @RequestParam(required = false) Double prezzo,
             @RequestParam(required = false) String target,
             @RequestParam(required = false) String tipoEvento,
+            @RequestParam(required = false) String istruttoreCf,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime inizio,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime fine) {
-        return service.filtra(idImpianto, prezzo, target, tipoEvento, inizio, fine);
+        return service.filtra(idImpianto, prezzo, target, tipoEvento, istruttoreCf, inizio, fine);
     }
 
     @GetMapping("/{id}/posti-disponibili")

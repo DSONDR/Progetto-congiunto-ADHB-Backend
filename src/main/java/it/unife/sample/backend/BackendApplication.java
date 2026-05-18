@@ -2,8 +2,11 @@ package it.unife.sample.backend;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.scheduling.annotation.EnableScheduling;
 
 @SpringBootApplication
+@EnableScheduling // orologio automatico in background
+					// Utile per cose come scadenze certificati/abbonamenti/iscrizioni
 public class BackendApplication {
 
 	public static void main(String[] args) {

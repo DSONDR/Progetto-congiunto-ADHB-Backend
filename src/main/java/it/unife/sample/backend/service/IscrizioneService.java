@@ -221,7 +221,18 @@ public class IscrizioneService {
         return postiOccupati < attivita.getMaxPartecipanti();
     }
 
+    // Visualizza tutte le attività a cui si è iscritto l'atleta
     public List<Iscrizione> getStoricoUtente(String cf) {
         return iscRepo.findByUtenteCf(cf);
+    }
+
+    // Funzionalità validazione qrcode: cerca ... e restituisce il dto appoisito
+    // Cerca un'iscrizione singola via QR code.
+    public Optional<Iscrizione> findByQrCode(String qrCode) {
+        return iscRepo.findByQrCode(qrCode);
+    }
+    // Cerca un uso abbonamento via QR code.
+    public Optional<UsaAbb> findUsoByQrCode(String qrCode) {
+        return usaAbbRepo.findByQrCode(qrCode);
     }
 }
