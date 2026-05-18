@@ -32,6 +32,12 @@ public class AbbonamentoController {
         return service.findAll();
     }
 
+    // Funzionalità: Recupera lo storico abbonamenti completo di un determinato utente
+    @GetMapping("/utente/{cf}")
+    public ResponseEntity<List<Abbonamento>> getStoricoUtente(@PathVariable String cf) {
+        return ResponseEntity.ok(service.findByAtletaCf(cf));
+    }   
+
     // Funzionalità: Visualizza il listino dei tipi di abbonamento disponibili per
     // l'acquisto
     @GetMapping("/tipi")
