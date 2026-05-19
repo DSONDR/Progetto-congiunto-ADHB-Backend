@@ -17,6 +17,7 @@ import java.util.*;
  * 
  * API Esposte:
  * - GET /api/abbonamenti -> Elenco di tutti gli abbonamenti venduti
+ * - GET /api/abbonamenti/utente/{cf} -> Storico per il singolo utente
  * - GET /api/abbonamenti/tipi -> Listino dei pacchetti abbonamento (prezzi)
  * - GET /api/abbonamenti/{id} -> Dettaglio singolo abbonamento venduto
  */
