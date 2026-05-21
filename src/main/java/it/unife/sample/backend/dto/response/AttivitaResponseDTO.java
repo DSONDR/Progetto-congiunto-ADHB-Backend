@@ -25,4 +25,5 @@ public class AttivitaResponseDTO {
     private String impiantoNome;
     private Long impiantoId;
     private List<LocalDateTime> dateOrari;
+    private List<SquadraResponseDTO> squadreAderenti;
 }

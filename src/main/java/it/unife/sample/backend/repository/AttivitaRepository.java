@@ -28,12 +28,13 @@ public interface AttivitaRepository extends JpaRepository<Attivita, Long> {
        // ai parametri passati
        // Usato da AttivitaService.filtra() nella funzionalità di ricerca pre
        // iscrizione
-       @Query("SELECT DISTINCT a FROM Attivita a LEFT JOIN a.dateAtts d WHERE " +
+       @Query("SELECT DISTINCT a FROM Attivita a LEFT JOIN a.dateAtts d LEFT JOIN a.squadreAderenti sq WHERE " +
                      "(:impiantoId IS NULL OR a.impianto.id = :impiantoId) AND " +
                      "(:prezzo IS NULL OR a.quotaBase <= :prezzo) AND " +
                      "(:target IS NULL OR a.destinatario = :target) AND " +
                      "(:tipoEvento IS NULL OR a.tipoEvento = :tipoEvento) AND " +
                      "(:istruttoreCf IS NULL OR a.istruttore.cf = :istruttoreCf) AND " +
+                     "(:squadraId IS NULL OR sq.id = :squadraId) AND " +
                      "(:inizio IS NULL OR d.date >= :inizio) AND " +
                      "(:fine IS NULL OR d.date <= :fine)")
        List<Attivita> findFiltered(@Param("impiantoId") Long impiantoId,
@@ -41,6 +42,7 @@ public interface AttivitaRepository extends JpaRepository<Attivita, Long> {
                      @Param("target") String target,
                      @Param("tipoEvento") String tipoEvento,
                      @Param("istruttoreCf") String istruttoreCf,
+                     @Param("squadraId") Long squadraId,
                      @Param("inizio") LocalDateTime inizio,
                      @Param("fine") LocalDateTime fine);
 

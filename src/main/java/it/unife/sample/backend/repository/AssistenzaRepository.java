@@ -18,4 +18,10 @@ public interface AssistenzaRepository extends JpaRepository<Assistenza, Long> {
     // Ricerca ticket per soddisfazione
     List<Assistenza> findBySoddisfazione(String soddisfazione);
 
+    // Ricerca per utente
+    List<Assistenza> findByUtenteCf(String cf);
+
+    // Ricerca per assistente
+    List<Assistenza> findByAssistenteCf(String cf);
+
 }

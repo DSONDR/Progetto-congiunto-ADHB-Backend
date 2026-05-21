@@ -91,7 +91,7 @@ public class PagamentoService {
         // Pagamenti derivanti da iscrizioni singole
         iscRepo.findByUtenteCf(cf).forEach(iscrizione -> {
             PagamentoResponseDTO dto = mapToDTO(iscrizione.getPagamento());
-            dto.setCausale("Iscrizione Attività: " + iscrizione.getAttivita().getNomeAttivita());
+            dto.setCausale("Iscrizione Attività: " + iscrizione.getAttivita().getNomeAtt());
             storico.add(dto);
         });
 

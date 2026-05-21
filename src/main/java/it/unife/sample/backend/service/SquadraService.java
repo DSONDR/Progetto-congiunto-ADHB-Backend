@@ -13,6 +13,7 @@ import it.unife.sample.backend.model.Allenatore;
 import it.unife.sample.backend.repository.SquadraRepository;
 import it.unife.sample.backend.repository.AtletaRepository;
 import it.unife.sample.backend.repository.UtenteRepository;
+import it.unife.sample.backend.repository.AllenatoreRepository;
 import it.unife.sample.backend.dto.request.SquadraRequestDTO;
 import it.unife.sample.backend.dto.response.SquadraResponseDTO;
 import it.unife.sample.backend.dto.response.UserResponseDTO;

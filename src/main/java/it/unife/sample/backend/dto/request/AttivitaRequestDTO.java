@@ -43,4 +43,6 @@ public class AttivitaRequestDTO {
     private Long impiantoId;
 
     private List<LocalDateTime> dateOrari;
+
+    private List<Long> squadreIds;
 }

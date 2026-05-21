@@ -46,4 +46,12 @@ public class Attivita {
 
     @OneToMany(mappedBy = "attivita", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<DateAtt> dateAtts = new ArrayList<>();
+
+    @ManyToMany
+    @JoinTable(
+        name = "ATTIVITA_SQUADRA",
+        joinColumns = @JoinColumn(name = "Codice_Att"),
+        inverseJoinColumns = @JoinColumn(name = "Id_Squadra")
+    )
+    private List<Squadra> squadreAderenti = new ArrayList<>();
 }

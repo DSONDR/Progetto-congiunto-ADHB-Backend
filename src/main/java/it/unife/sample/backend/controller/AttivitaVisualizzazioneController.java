@@ -54,9 +54,10 @@ public class AttivitaVisualizzazioneController {
             @RequestParam(required = false) String target,
             @RequestParam(required = false) String tipoEvento,
             @RequestParam(required = false) String istruttoreCf,
+            @RequestParam(required = false) Long squadraId,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime inizio,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime fine) {
-        return service.filtra(idImpianto, prezzo, target, tipoEvento, istruttoreCf, inizio, fine);
+        return service.filtra(idImpianto, prezzo, target, tipoEvento, istruttoreCf, squadraId, inizio, fine);
     }
 
     @GetMapping("/{id}/posti-disponibili")

@@ -20,6 +20,9 @@ import it.unife.sample.backend.repository.AttivitaRepository;
 import it.unife.sample.backend.repository.DateAttRepository;
 import it.unife.sample.backend.repository.IscrizioneRepository;
 import it.unife.sample.backend.repository.UsaAbbRepository;
+import it.unife.sample.backend.repository.SquadraRepository;
+import it.unife.sample.backend.model.Squadra;
+import it.unife.sample.backend.dto.response.SquadraResponseDTO;
 
 @Service
 public class AttivitaService {
@@ -35,6 +38,9 @@ public class AttivitaService {
 
     @Autowired
     private UsaAbbRepository usaRepo;
+
+    @Autowired
+    private SquadraRepository squadraRepo;
 
     @Autowired
     private IstruttoreService istruttoreService;
@@ -134,10 +140,10 @@ public class AttivitaService {
                 .collect(Collectors.toList());
     }
 
-    // Ricerca avanzata con più parametri (incluso istruttore)
+    // Ricerca avanzata con più parametri (incluso istruttore e squadra)
     public List<AttivitaResponseDTO> filtra(Long idImpianto, Double prezzo, String target, String tipoEvento,
-            String istruttoreCf, LocalDateTime inizio, LocalDateTime fine) {
-        return repo.findFiltered(idImpianto, prezzo, target, tipoEvento, istruttoreCf, inizio, fine).stream()
+            String istruttoreCf, Long squadraId, LocalDateTime inizio, LocalDateTime fine) {
+        return repo.findFiltered(idImpianto, prezzo, target, tipoEvento, istruttoreCf, squadraId, inizio, fine).stream()
                 .map(this::mapToResponse)
                 .collect(Collectors.toList());
     }
@@ -177,6 +183,13 @@ public class AttivitaService {
         attivita.setIstruttore(istruttore);
         attivita.setImpianto(impianto);
 
+        // Gestione delle squadre aderenti
+        attivita.getSquadreAderenti().clear();
+        if (dto.getSquadreIds() != null && !dto.getSquadreIds().isEmpty()) {
+            List<Squadra> squadre = squadraRepo.findAllById(dto.getSquadreIds());
+            attivita.getSquadreAderenti().addAll(squadre);
+        }
+
         attivita.getDateAtts().clear();
         if (dto.getDateOrari() != null) {
             for (LocalDateTime date : dto.getDateOrari()) {
@@ -212,6 +225,21 @@ public class AttivitaService {
                 .map(DateAtt::getDate)
                 .sorted()
                 .collect(Collectors.toList()));
+
+        if (attivita.getSquadreAderenti() != null) {
+            dto.setSquadreAderenti(attivita.getSquadreAderenti().stream().map(s -> {
+                SquadraResponseDTO sDto = new SquadraResponseDTO();
+                sDto.setId(s.getId());
+                sDto.setNome(s.getNome());
+                sDto.setSport(s.getSport());
+                sDto.setCampionato(s.getCampionato());
+                if (s.getAllenatore() != null) {
+                    sDto.setAllenatoreCf(s.getAllenatore().getCf());
+                    sDto.setNomeAllenatore(s.getAllenatore().getNome() + " " + s.getAllenatore().getCognome());
+                }
+                return sDto;
+            }).collect(Collectors.toList()));
+        }
 
         return dto;
     }
