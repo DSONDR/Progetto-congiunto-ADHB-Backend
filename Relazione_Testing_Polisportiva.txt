@@ -1,0 +1,73 @@
+RELAZIONE DI TESTING E DEBUGGING - APPLICAZIONE POLISPORTIVA
+
+La seguente relazione documenta la sessione di testing esplorativo condotta sull'applicativo web per la gestione della Polisportiva.
+Durante i collaudi sono emersi vari bug architetturali e di interfaccia, i quali sono stati progressivamente analizzati, isolati e risolti per garantire la stabilità della Release finale.
+
+--------------------------------------------------------------------------------
+1. MODULO: GESTIONE UTENTI (ADMIN)
+--------------------------------------------------------------------------------
+- Test Case: Creazione di un nuovo utente (Atleta, Istruttore o Allenatore) dalla dashboard dell'admin.
+- Esito Atteso: Inserimento corretto nel database e visualizzazione nella pagina divisi per ruoli.
+- Problema Riscontrato: L'applicazione restituiva un errore irreversibile al momento del salvataggio e gli utenti già presenti erano tutti assieme sotto atleta, lo staff duplicato anche nella propria sezione.
+- Causa: L'Entity backend (Utente.java) imponeva un vincolo @NotBlank sul campo "genere", ma il frontend non passava questa informazione, inviando un valore null. Inoltre non venivano validate le lunghezze di campi critici. Assenza di filtro per la seconda parte del problema.
+- Soluzione Implementata: 
+  > Aggiunto un valore di default ('M') in fase di inizializzazione nel frontend in GestioneUtentiComponent.
+  > Implementate validazioni client-side prima della chiamata API per evitare invii inutili (Codice Fiscale obbligato a 16 caratteri, Password minima 8 caratteri).
+
+--------------------------------------------------------------------------------
+2. MODULO: ISCRIZIONI E CALENDARIO
+--------------------------------------------------------------------------------
+- Test Case 2.1: Doppia iscrizione.
+- Problema Riscontrato: Un utente riusciva a re-iscriversi a una stessa attività per cui aveva già pagato.
+- Soluzione Implementata: Aggiunti controlli per bloccare doppie prenotazioni e mostrato un messaggio di alert esplicito.
+
+- Test Case 2.2: Cancellazione prenotazione (Disiscrizione) e logica di Gamification.
+- Problema Riscontrato: Al momento dell'annullamento della prenotazione, avveniva il finto rimborso ma non venivano scalati i Punti Gamification accumulati.
+- Soluzione Implementata: Modificato il CalendarioComponent per decurtare dal SessionService i punti pari all'importo dell'attività rimborsata (aggiornando l'utente in locale).
+
+- Test Case 2.3: Visualizzazione storica del Calendario.
+- Problema Riscontrato: L'utente si ritrovava sempre il calendario intasato da eventi passati già conclusi.
+- Soluzione Implementata: Aggiunta logica di default in CalendarioComponent per filtrare via gli eventi antecedenti al giorno odierno. I vecchi eventi rimangono visualizzabili solo applicando un filtro esplicito di date.
+
+- Test Case 2.4: Filtraggio per date degli eventi.
+- Problema Riscontrato: Errore 400 Bad Request durante l'utilizzo del filtro per date nel frontend (sia in eventi che calendario).
+- Causa: Il frontend aggiungeva un orario dummy ("T00:00:00") a una stringa che era già in formato datetime-local.
+- Soluzione Implementata: Pulita la logica di invio dei parametri dal form di ricerca al service.
+
+- Test Case 2.5: Pagamento iscrizione con carta di credito fittizia.
+- Problema Riscontrato: L'utente riusciva a procedere all'iscrizione ignorando la coerenza logica della carta (es. formati errati o carta scaduta nel passato).
+- Soluzione Implementata: Inseriti controlli per il formato (16 cifre carta, 3 cifre CVV) e controllo sulla data di scadenza (MM/AA).
+
+- Test Case 2.6: Visualizzazione calendario dello Staff.
+- Problema Riscontrato: Allenatori e istruttori, accedendo al proprio calendario, non vedevano in alcun modo le proprie attività e allenamenti assegnati.
+- Soluzione Implementata: Aggiunta chiamata API al filtro dinamico { istruttoreCf: this.cfUtente }, recuperando unicamente le sessioni a cui l'istruttore/allenatore è stato associato.
+
+--------------------------------------------------------------------------------
+3. MODULO: GESTIONE ATTIVITÀ E FILTRI (ISTRUTTORI)
+--------------------------------------------------------------------------------
+- Test Case 3.1: Modifica di un'attività esistente e già avviata.
+- Problema Riscontrato: Il backend bloccava il salvataggio a causa della validazione che impediva la registrazione di date "nel passato". Ciò impediva di aggiornare dati di corsi già iniziati (es. cambiare descrizione a metà corso).
+- Soluzione Implementata: Allentati i vincoli di validazione temporale esclusivamente nella fase di Update (AttivitaService.java), limitando il controllo sul passato solo alla fase di prima creazione.
+- Sembra l'aggiunta di un problema, ma per come sono state pensate le attività (con più ricorrenze della stessa) in realtà lo risolve.
+
+- Test Case 3.2: Eliminazione di tutte le date da un'attività esistente.
+- Problema riscontrato: Da Frontend era possibile eliminare le suddette date e lasciare l'attività vuota e prenotabile/prenotata, ma senza alcuna ricorrenza.
+- Soluzione Implementata: Aggiunta validazione lato frontend in fase di salvataggio che impedisce la rimozione totale degli orari, obbligando l'inserimento di almeno una data o ricorrenza valida prima di consentire l'update dell'attività.
+
+--------------------------------------------------------------------------------
+4. MODULO: GESTIONE SPONSORIZZAZIONI E COMMERCIALI
+--------------------------------------------------------------------------------
+- Test Case: Creazione, associazione e visualizzazione di un partner commerciale.
+- Problema Riscontrato: Lo sponsor veniva teoricamente salvato, ma la lista nella dashboard risultava totalmente vuota (senza nomi). L'apertura della modale per modificarlo era bloccata ed era possibile solo la cancellazione.
+- Causa: Disallineamenti di mapping tra Frontend e Backend:
+  1. Frontend inviava "pIva", ma il Backend si aspettava "partitaIva". Questo causava null point reference.
+  2. L'HTML cercava di stampare campi inesistenti (es. "nome_sp" invece di "azienda"...).
+- Soluzione Implementata: Remapping completo da database a backend e frontend.
+
+--------------------------------------------------------------------------------
+5. MODULO: TICKETING E ASSISTENZE
+--------------------------------------------------------------------------------
+- Test Case: Apertura di un ticket da parte di un atleta e presa in carico da parte dello Staff.
+- Problema Riscontrato: Alcuni ticket aperti dagli atleti non risultavano visibili al pannello dello Staff, rendendone impossibile la risoluzione.
+- Causa: Incongruenza nei nomi degli Stati dei ticket. Alcuni ticket nel database avevano lo stato "APERTO", mentre la dashboard dello staff interrogava il database filtrando esclusivamente per "IN ATTESA".
+- Soluzione Implementata: Creazione di un "ciclo di vita del ticket". Dal database, ai validatori Java nel backend, fino alle interfacce utente TypeScript/SCSS, si è unificato tutto verso lo stato "APERTO".
