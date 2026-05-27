@@ -22,14 +22,17 @@ public class Abbonamento {
     @Column(name = "Data_Inizio")
     @NotNull(message = "Inizio obbligatorio")
     private LocalDate dataInizio;
+    
     @Column(name = "Data_Scadenza")
     private LocalDate dataScadenza;
+    
     @Column(name = "Tipo_Abb")
     @NotBlank(message = "Tipo obbligatorio")
     private String tipoAbb;
 
     @Column(name = "Ingressi_Effettuati")
     private Integer ingressiEffettuati;
+    
     @Column(name = "Stato_Abb")
     private String statoAbb;
 

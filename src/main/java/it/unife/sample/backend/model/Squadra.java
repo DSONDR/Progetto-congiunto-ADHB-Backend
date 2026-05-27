@@ -20,9 +20,11 @@ public class Squadra {
     @Column(name = "Nome_Sq")
     @NotBlank(message = "Nome obbligatorio")
     private String nome;
+    
     @Column(name = "Sport")
     @NotBlank(message = "Sport obbligatorio")
     private String sport;
+    
     @Column(name = "Campionato")
     private String campionato;
 

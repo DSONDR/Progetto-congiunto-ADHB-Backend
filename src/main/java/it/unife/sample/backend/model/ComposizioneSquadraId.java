@@ -13,3 +13,5 @@ public class ComposizioneSquadraId implements Serializable {
     private Long squadra;
     private String atleta;
 }
+
+//EntitàId.java, richiesta da JPA per le chiavi composte

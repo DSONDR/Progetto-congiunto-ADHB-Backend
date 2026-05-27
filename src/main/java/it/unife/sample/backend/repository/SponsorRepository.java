@@ -1,5 +1,6 @@
-package it.unife.sample.backend.repository;
+package it.unife.sample.backend.repository; // Cartella repository
 
+// Devi importare il Model perché si trova in un'altra cartella (package)
 import it.unife.sample.backend.model.Sponsor;
 import java.util.List;
 
@@ -8,17 +9,5 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface SponsorRepository extends JpaRepository<Sponsor, String> {
-
-    // ricerca sponsor per azienda
-    List<Sponsor> findByAzienda(String azienda);
-
-    // ricerca sponsor per partita iva
-    List<Sponsor> findByPIva(String pIva);
-
-    // ricerca sponsor che sponsorizzano una determinata squadra
-    List<Sponsor> findBySquadreId(Long idSquadra);
-
-    // ricerca sponsor che sponsorizzano un determinato impianto
-    List<Sponsor> findByImpiantiId(Long idImpianto);
 
 }

@@ -13,3 +13,5 @@ public class DateAttId implements Serializable {
     private LocalDateTime date;
     private Long attivita;
 }
+
+//EntitàId.java, richiesta da JPA per le chiavi composte

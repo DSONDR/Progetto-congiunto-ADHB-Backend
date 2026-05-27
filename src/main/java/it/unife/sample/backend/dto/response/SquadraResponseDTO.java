@@ -7,6 +7,7 @@ import lombok.Data;
  * Incapsula l'entità evitando di esporre direttamente la lista 
  * completa degli atleti (recuperabile tramite apposito endpoint)
  * e le credenziali dell'allenatore.
+ * Creato da SquadraService (tramite conversione dell'entità) e restituito da SquadraController.
  */
 @Data
 public class SquadraResponseDTO {

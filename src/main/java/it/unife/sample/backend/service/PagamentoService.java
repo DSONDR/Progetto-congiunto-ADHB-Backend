@@ -39,27 +39,31 @@ public class PagamentoService {
         return dto;
     }
 
-    // CRUD base (solo lettura per i Controller)
+    // CRUD base
     public List<PagamentoResponseDTO> findAll() {
         return repo.findAll().stream()
                 .map(this::mapToDTO)
                 .collect(Collectors.toList());
     }
 
+    // CRUD base
     public Optional<PagamentoResponseDTO> findById(Long id) {
         return repo.findById(id).map(this::mapToDTO);
     }
 
     // Metodi di utilità interna (non esposti come DTO nel controller)
+    // CRUD base
     public Pagamento save(Pagamento pagamento) {
         return repo.save(pagamento);
     }
 
+    // CRUD base
     public void deleteById(Long id) {
         repo.deleteById(id);
     }
 
     // Ricerca avanzata per data e/o importo
+    // Usata in: PagamentoController.getById
     public List<PagamentoResponseDTO> ricercaAvanzata(LocalDateTime da, LocalDateTime a, Double min, Double max) {
         List<Pagamento> risultati;
         if (da != null && a != null) {
@@ -73,6 +77,8 @@ public class PagamentoService {
     }
 
     // Filtro per Attività (recupera i pagamenti associati alle iscrizioni di un'attività)
+    // Usata in: PagamentoController.getByAttivita
+    // Frontend: Transazioni / Calendario / Eventi
     public List<PagamentoResponseDTO> getPagamentiPerAttivita(Long idAttivita) {
         return iscRepo.findByAttivitaCodiceAtt(idAttivita).stream()
                 .map(Iscrizione::getPagamento)
@@ -85,6 +91,8 @@ public class PagamentoService {
     }
 
     // Storico transazioni di un utente (unisce Iscrizioni e Sottoscrizioni)
+    // Usata in: PagamentoController.getStoricoUtente
+    // Frontend: Transazioni / Login / Utenti
     public List<PagamentoResponseDTO> getStoricoTransazioni(String cf) {
         List<PagamentoResponseDTO> storico = new ArrayList<>();
 
@@ -108,6 +116,9 @@ public class PagamentoService {
     }
 
     // Genera una ricevuta formattata testuale per un determinato pagamento
+    // Funzionalità: Esegue l'operazione di generaRicevuta
+    // Usata in: PagamentoController.getRicevuta
+    // Frontend: NON USATA, ma ottima per il futuro
     public String generaRicevuta(Long idPagamento) {
         Pagamento p = repo.findById(idPagamento)
                 .orElseThrow(() -> new RuntimeException("Pagamento non trovato"));

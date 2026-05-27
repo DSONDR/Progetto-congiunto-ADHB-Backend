@@ -1,5 +1,6 @@
-package it.unife.sample.backend.repository;
+package it.unife.sample.backend.repository; // Cartella repository
 
+// Devi importare il Model perché si trova in un'altra cartella (package)
 import it.unife.sample.backend.model.Impianto;
 import java.util.List;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -13,8 +14,5 @@ public interface ImpiantoRepository extends JpaRepository<Impianto, Long> {
 
     // Trova impianti per stato
     List<Impianto> findByStato(String stato);
-
-    // Trova impianto per omologazione
-    List<Impianto> findByOmologazione(String omologazione);
 
 }

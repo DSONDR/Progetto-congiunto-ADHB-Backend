@@ -7,6 +7,7 @@ import java.time.LocalDate;
  * DTO di risposta per la visualizzazione dei dettagli di un pagamento.
  * Evita di esporre direttamente l'entità JPA e aggiunge un campo "causale"
  * per indicare da dove proviene il pagamento (es. Iscrizione o Abbonamento).
+ * Creato da PagamentoService (tramite mapToDTO) e restituito da PagamentoController.
  */
 @Data
 public class PagamentoResponseDTO {

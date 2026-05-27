@@ -21,21 +21,25 @@ public class AbbonamentoService {
         return repo.findAll();
     }
 
+    // CRUD base
     public Optional<Abbonamento> findById(Long id) {
         return repo.findById(id);
     }
 
+    // CRUD base
     public Abbonamento save(Abbonamento abbonamento) {
         return repo.save(abbonamento);
     }
 
+    // CRUD base
     public void deleteById(Long id) {
         repo.deleteById(id);
     }
 
     // Recupera tutti gli abbonamenti di un atleta specifico
-    // Usato da SottoscrizioneController nella visualizzazione abbonamenti
-    // dell'atleta
+    // Usato da SottoscrizioneController.disdici nella visualizzazione abbonamenti
+    // dell'atleta e in AbbonamentoController.getStoricoUtente
+    // Frontend: Login / Utenti / Dashboard / Acquisto
     public List<Abbonamento> findByAtletaCf(String cf) {
         return repo.findByAtletaCf(cf);
     }
@@ -69,8 +73,10 @@ public class AbbonamentoService {
     }
 
     // Metodo di Gestione tipi abbonamento - Crea una lista (finta)
-    // di abbonamenti tra cui scegliere al momento dell'acquisto
+    // di TipiAbbonamento tra cui scegliere al momento dell'acquisto
     // Usato nella funzionalità di sottoscrizione degli abbonamenti
+    // tramite AbbonamentoController.getTipiAbbonamento
+    // Frontend: Dashboard / Acquisto
     public List<TipoAbbonamentoDTO> getTipiAbbonamento() {
         return List.of(
                 new TipoAbbonamentoDTO("Mensile", "TEMPO", 50.0, 1, null),
@@ -83,8 +89,9 @@ public class AbbonamentoService {
 
     // Metodo per ritrovare i dettagli di un tipo di abbonamento tramite il suo
     // nomeDto
-    // Usato nella funzionalità di sottoscrizione degli abbonamenti o l'uso
-    // dell'abbonamento nell'iscrizione
+    // Usato nella funzionalità di sottoscrizione degli abbonamenti (.rinnova e .sottoscrivi)
+    // o l'uso dell'abbonamento nell'iscrizione (IscrizioneService.iscriviConAbbonamento)
+    // Frontend: Iscrizione Evento / Dashboard / Acquisto
     public Optional<TipoAbbonamentoDTO> getDettagliTipo(String nomeTipoDto) {
         return getTipiAbbonamento().stream()
                 .filter(t -> t.getNome().equalsIgnoreCase(nomeTipoDto))

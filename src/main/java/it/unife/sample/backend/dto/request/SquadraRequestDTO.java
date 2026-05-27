@@ -5,6 +5,7 @@ import lombok.Data;
 
 /**
  * DTO utilizzato per la creazione o modifica di una Squadra.
+ * Ricevuto da SquadraController e processato da SquadraService.
  */
 @Data
 public class SquadraRequestDTO {

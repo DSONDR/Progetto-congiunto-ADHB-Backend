@@ -1,5 +1,6 @@
-package it.unife.sample.backend.repository;
+package it.unife.sample.backend.repository; // Cartella repository
 
+// Devi importare il Model perché si trova in un'altra cartella (package)
 import it.unife.sample.backend.model.Squadra;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
@@ -12,5 +13,5 @@ public interface SquadraRepository extends JpaRepository<Squadra, Long> {
     List<Squadra> findByAllenatoreCf(String cf);
 
     // Trova le squadre di cui un atleta fa parte
-    List<Squadra> findByAtletaCf(String cf);
+    List<Squadra> findByAtleti_Cf(String cf);
 }

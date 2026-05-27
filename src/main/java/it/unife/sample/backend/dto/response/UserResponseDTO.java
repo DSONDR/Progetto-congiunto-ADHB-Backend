@@ -31,4 +31,8 @@ public class UserResponseDTO {
     private String email;
 
     private String tipoIscritto;
+
+    private LocalDate scadenzaCertificato;
+
+    private Integer puntiGamification;
 }

@@ -61,24 +61,32 @@ public class SquadraService {
 
     // --- LETTURA SQUADRE ---
     
+    // CRUD base
     public List<SquadraResponseDTO> findAll() {
         return sqRepo.findAll().stream().map(this::mapToDTO).collect(Collectors.toList());
     }
 
+    // CRUD base
     public Optional<SquadraResponseDTO> findById(Long id) {
         return sqRepo.findById(id).map(this::mapToDTO);
     }
 
+    // Funzionalità: Recupera i dati filtrando per AllenatoreCf
+    // Usata in: SquadraController.findByAllenatoreCf
     public List<SquadraResponseDTO> findByAllenatoreCf(String cf) {
         return sqRepo.findByAllenatoreCf(cf).stream().map(this::mapToDTO).collect(Collectors.toList());
     }
 
+    // Funzionalità: Recupera i dati filtrando per AtletaCf
+    // Usata in: SquadraController.findByAtletaCf
     public List<SquadraResponseDTO> findByAtletaCf(String cf) {
-        return sqRepo.findByAtletaCf(cf).stream().map(this::mapToDTO).collect(Collectors.toList());
+        return sqRepo.findByAtleti_Cf(cf).stream().map(this::mapToDTO).collect(Collectors.toList());
     }
 
     // --- GESTIONE SQUADRA ---
 
+    // Funzionalità: Esegue l'operazione di creaSquadra
+    // Usata in: SquadraController.create
     @Transactional
     public SquadraResponseDTO creaSquadra(SquadraRequestDTO dto) {
         Allenatore allenatore = allenatoreRepo.findById(dto.getAllenatoreCf())
@@ -93,6 +101,8 @@ public class SquadraService {
         return mapToDTO(sqRepo.save(sq));
     }
 
+    // Funzionalità: Esegue l'operazione di modificaSquadra
+    // Usata in: SquadraController.update
     @Transactional
     public SquadraResponseDTO modificaSquadra(Long id, SquadraRequestDTO dto) {
         Squadra sq = sqRepo.findById(id)
@@ -109,6 +119,7 @@ public class SquadraService {
         return mapToDTO(sqRepo.save(sq));
     }
 
+    // CRUD base
     @Transactional
     public void deleteById(Long id) {
         sqRepo.deleteById(id);
@@ -116,6 +127,8 @@ public class SquadraService {
 
     // --- GESTIONE ROSTER ATLETI ---
 
+    // Funzionalità: Esegue l'operazione di aggiungiAtletaASquadra
+    // Usata in: SquadraController.addAtleta
     @Transactional
     public void aggiungiAtletaASquadra(Long squadraId, String atletaCf) {
         Squadra squadra = sqRepo.findById(squadraId).orElseThrow(() -> new RuntimeException("Squadra non trovata"));
@@ -127,6 +140,8 @@ public class SquadraService {
         }
     }
 
+    // Funzionalità: Esegue l'operazione di rimuoviAtletaDaSquadra
+    // Usata in: SquadraController.removeAtleta
     @Transactional
     public void rimuoviAtletaDaSquadra(Long squadraId, String atletaCf) {
         Squadra squadra = sqRepo.findById(squadraId).orElseThrow(() -> new RuntimeException("Squadra non trovata"));
@@ -138,6 +153,8 @@ public class SquadraService {
         }
     }
 
+    // Funzionalità: Ottiene i dati di AtletiBySquadra
+    // Usata in: SquadraController.getAtleti
     public List<UserResponseDTO> getAtletiBySquadra(Long squadraId) {
         return sqRepo.findById(squadraId)
                 .map(Squadra::getAtleti)
@@ -145,6 +162,8 @@ public class SquadraService {
                 .stream().map(this::mapAtletaToUserDTO).collect(Collectors.toList());
     }
 
+    // Funzionalità: Ottiene i dati di AtletiScadutiBySquadra
+    // Usata in: SquadraController.getAtletiScaduti
     public List<UserResponseDTO> getAtletiScadutiBySquadra(Long squadraId) {
         Squadra squadra = sqRepo.findById(squadraId)
                 .orElseThrow(() -> new RuntimeException("Squadra non trovata"));

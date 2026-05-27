@@ -12,27 +12,33 @@ import java.util.List;
 /**
  * Controller per la visualizzazione delle attività (ACCESSO PUBBLICO).
  * Consente ricerca, filtri e visualizzazione calendario.
- *
- * API:
- * - GET    /api/attivita                           -> lista tutte le attività
- * - GET    /api/attivita/{id}                      -> dettagli attività
- * - GET    /api/attivita/calendario                -> attività tra due date
- * - GET    /api/attivita/filtra                    -> filtro per data/tipo/destinatario/prezzo/istruttore
- * - GET    /api/attivita/{id}/posti-disponibili    -> verifica disponibilità
- * - GET    /api/attivita/{id}/iscritti             -> numero iscritti
+ * Mappato lato frontend in: attivitavisualizzazione.service.ts
+ * 
+ * API Esposte:
+ * - GET /api/attivita -> Recupera l'elenco di tutti gli elementi [Nessun component specifico]
+ * - GET /api/attivita/{id} -> Recupera il dettaglio di un singolo elemento [Nessun component specifico]
+ * - GET /api/attivita/calendario -> Filtra le attività per calendario (tra due date) [Nessun component specifico]
+ * - GET /api/attivita/filtra -> Filtra le attività con parametri avanzati [Nessun component specifico]
+ * - GET /api/attivita/tipi-evento -> Recupera l'elenco dei tipi di evento [Nessun component specifico]
+ * - GET /api/attivita/destinatari -> Recupera l'elenco dei destinatari possibili [Nessun component specifico]
+ * - GET /api/attivita/{id}/posti-disponibili -> Verifica se c'è almeno un posto disponibile [Nessun component specifico]
+ * - GET /api/attivita/{id}/iscritti -> Recupera il numero totale degli iscritti all'attività [Nessun component specifico]
  */
 @RestController
 @RequestMapping("/api/attivita")
+@CrossOrigin(origins = "http://localhost:4200")
 public class AttivitaVisualizzazioneController {
 
     @Autowired
     private AttivitaService service;
 
+    // Funzionalità: Recupera l'elenco di tutti gli elementi
     @GetMapping
     public List<AttivitaResponseDTO> getAll() {
         return service.findAllDTO();
     }
 
+    // Funzionalità: Recupera il dettaglio di un singolo elemento
     @GetMapping("/{id}")
     public ResponseEntity<AttivitaResponseDTO> getById(@PathVariable Long id) {
         return service.findDtoById(id)
@@ -40,6 +46,7 @@ public class AttivitaVisualizzazioneController {
                 .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
+    // Funzionalità: Filtra le attività per calendario (tra due date)
     @GetMapping("/calendario")
     public List<AttivitaResponseDTO> getCalendario(
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime inizio,
@@ -47,6 +54,7 @@ public class AttivitaVisualizzazioneController {
         return service.getCalendario(inizio, fine);
     }
 
+    // Funzionalità: Filtra le attività con parametri avanzati
     @GetMapping("/filtra")
     public List<AttivitaResponseDTO> filtra(
             @RequestParam(required = false) Long idImpianto,
@@ -60,6 +68,19 @@ public class AttivitaVisualizzazioneController {
         return service.filtra(idImpianto, prezzo, target, tipoEvento, istruttoreCf, squadraId, inizio, fine);
     }
 
+    // Funzionalità: Recupera l'elenco dei tipi di evento
+    @GetMapping("/tipi-evento")
+    public List<String> getTipiEvento() {
+        return service.getTipiEvento();
+    }
+
+    // Funzionalità: Recupera l'elenco dei destinatari possibili
+    @GetMapping("/destinatari")
+    public List<String> getDestinatari() {
+        return service.getDestinatari();
+    }
+
+    // Funzionalità: Verifica se c'è almeno un posto disponibile
     @GetMapping("/{id}/posti-disponibili")
     public ResponseEntity<Boolean> isPostoDisponibile(@PathVariable Long id) {
         if (!service.findById(id).isPresent()) {
@@ -68,6 +89,7 @@ public class AttivitaVisualizzazioneController {
         return ResponseEntity.ok(service.isPostoDisponibile(id));
     }
 
+    // Funzionalità: Recupera il numero totale degli iscritti all'attività
     @GetMapping("/{id}/iscritti")
     public ResponseEntity<Integer> getNumeroIscritti(@PathVariable Long id) {
         if (!service.findById(id).isPresent()) {

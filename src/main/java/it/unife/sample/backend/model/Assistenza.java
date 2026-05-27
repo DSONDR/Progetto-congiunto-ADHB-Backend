@@ -16,10 +16,18 @@ public class Assistenza {
     private Long idTicket;
     
     private String oggetto;
+    
     @Column(name = "Tipo_Ass")
     private String tipoAss;
+    
     private String stato;
     private Integer soddisfazione;
+
+    @Column(columnDefinition="TEXT")	//Serve perchè testi anche molto lunghi
+    private String contenuto;
+    
+    @Column(columnDefinition="TEXT")
+    private String risposta;
 
     // 1:N - Molte assistenze possono essere richieste da un solo utente
     @ManyToOne

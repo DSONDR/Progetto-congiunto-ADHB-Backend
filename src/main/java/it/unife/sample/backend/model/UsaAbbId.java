@@ -10,8 +10,9 @@ import lombok.AllArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class UsaAbbId implements Serializable {
-    private Long numeroAbb;
-    private Long codiceAtt;
-    private String cf;
-    private LocalDate dataUso;
+    private Long abbonamento;
+    private Long attivita;
+    private String utente;
 }
+
+//EntitàId.java, richiesta da JPA per le chiavi composte

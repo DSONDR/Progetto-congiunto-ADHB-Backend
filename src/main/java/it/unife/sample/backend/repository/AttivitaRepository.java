@@ -24,16 +24,14 @@ public interface AttivitaRepository extends JpaRepository<Attivita, Long> {
        @Query("SELECT DISTINCT a FROM Attivita a JOIN a.dateAtts d WHERE d.date BETWEEN :start AND :end")
        List<Attivita> findByDateAttsDateBetween(@Param("start") LocalDateTime start, @Param("end") LocalDateTime end);
 
-       // Filtro di ricerca dinamico, ignora i campi nulli e filtra gli altri in base
-       // ai parametri passati
-       // Usato da AttivitaService.filtra() nella funzionalità di ricerca pre
-       // iscrizione
+       // Filtro di ricerca dinamico, ignora i campi nulli e filtra gli altri in base ai parametri passati
+       // Usato da AttivitaService.filtra() nella funzionalità di ricerca pre iscrizione
        @Query("SELECT DISTINCT a FROM Attivita a LEFT JOIN a.dateAtts d LEFT JOIN a.squadreAderenti sq WHERE " +
                      "(:impiantoId IS NULL OR a.impianto.id = :impiantoId) AND " +
                      "(:prezzo IS NULL OR a.quotaBase <= :prezzo) AND " +
                      "(:target IS NULL OR a.destinatario = :target) AND " +
                      "(:tipoEvento IS NULL OR a.tipoEvento = :tipoEvento) AND " +
-                     "(:istruttoreCf IS NULL OR a.istruttore.cf = :istruttoreCf) AND " +
+                     "(:istruttoreCf IS NULL OR a.istruttore.cf = :istruttoreCf OR sq.allenatore.cf = :istruttoreCf) AND " +
                      "(:squadraId IS NULL OR sq.id = :squadraId) AND " +
                      "(:inizio IS NULL OR d.date >= :inizio) AND " +
                      "(:fine IS NULL OR d.date <= :fine)")
@@ -57,4 +55,11 @@ public interface AttivitaRepository extends JpaRepository<Attivita, Long> {
        @Query("SELECT COUNT(a) > 0 FROM Attivita a JOIN a.dateAtts d WHERE a.impianto.id = :impiantoId AND a.codiceAtt != :codiceAtt AND d.date IN :date")
        boolean existsByImpiantoAndDateOverlapExcluding(@Param("impiantoId") Long impiantoId,
                      @Param("codiceAtt") Long codiceAtt, @Param("date") List<LocalDateTime> date);
+
+       // --- FILTRI DINAMICI FRONTEND ---
+       @Query("SELECT DISTINCT a.tipoEvento FROM Attivita a WHERE a.tipoEvento IS NOT NULL")
+       List<String> findDistinctTipiEvento();
+
+       @Query("SELECT DISTINCT a.destinatario FROM Attivita a WHERE a.destinatario IS NOT NULL")
+       List<String> findDistinctDestinatari();
 }

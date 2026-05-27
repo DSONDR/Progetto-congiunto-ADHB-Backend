@@ -9,7 +9,9 @@ import lombok.AllArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class IscrSingolaId implements Serializable {
-    private Long codiceAtt;
-    private Long idPagamento;
-    private String cf;
+    private Long attivita;
+    private Long pagamento;
+    private String utente;
 }
+
+//EntitàId.java, richiesta da JPA per le chiavi composte

@@ -14,26 +14,24 @@ import java.util.List;
  * Controller per la gestione delle Squadre.
  * Segue il pattern di Security by Design, omettendo CRUD con Entità e
  * affidandosi ai DTO per l'inserimento/modifica.
+ * Mappato lato frontend in: squadra.service.ts
  * 
  * API Esposte:
- * - POST /api/squadre -> Crea nuova squadra
- * - PUT /api/squadre/{id} -> Modifica dati squadra
- * - DELETE /api/squadre/{id} -> Cancella squadra
- * 
- * Lettura Squadre:
- * - GET /api/squadre -> Elenco di tutte le squadre
- * - GET /api/squadre/{id} -> Dettaglio di una squadra
- * - GET /api/squadre/per-allenatore/{cf} -> Cerca squadre per allenatore
- * - GET /api/squadre/per-atleta/{cf} -> Cerca squadre per atleta
- * 
- * Gestione Roster:
- * - POST /api/squadre/{id}/atleti/{atletaCf} -> Iscrive atleta
- * - DELETE /api/squadre/{id}/atleti/{atletaCf} -> Rimuove atleta
- * - GET /api/squadre/{id}/atleti -> Roster completo
- * - GET /api/squadre/{id}/atleti/scaduti -> Atleti con certificato scaduto
+ * - GET /api/squadre -> Recupera l'elenco di tutti gli elementi [Allenamenti AllenatoreComponent / Gestione AttivitaComponent / Gestione SponsorComponent / Gestione SquadreComponent / SquadreComponent]
+ * - GET /api/squadre/{id} -> Recupera il dettaglio di un singolo elemento [Allenamenti AllenatoreComponent / Gestione AttivitaComponent / Gestione SponsorComponent / Gestione SquadreComponent / SquadreComponent]
+ * - GET /api/squadre/per-allenatore/{cf} -> Recupera le squadre gestite da un allenatore [SquadreComponent / Allenamenti AllenatoreComponent]
+ * - GET /api/squadre/per-atleta/{cf} -> Recupera le squadre a cui partecipa un atleta [SquadreComponent]
+ * - POST /api/squadre -> Creazione di una nuova squadra. [Allenamenti AllenatoreComponent / Gestione AttivitaComponent / Gestione SponsorComponent / Gestione SquadreComponent]
+ * - PUT /api/squadre/{id} -> Modifica dei dati di una squadra (es. nome o allenatore). [Gestione SquadreComponent]
+ * - DELETE /api/squadre/{id} -> Scioglimento di una squadra. [Gestione SquadreComponent]
+ * - POST /api/squadre/{id}/atleti/{atletaCf} -> Iscrizione di un atleta a una squadra. [Gestione SquadreComponent]
+ * - DELETE /api/squadre/{id}/atleti/{atletaCf} -> Rimozione di un atleta dal roster della squadra. [Gestione SquadreComponent]
+ * - GET /api/squadre/{id}/atleti -> Restituisce l'elenco completo degli atleti che compongono la squadra. [SquadreComponent / Gestione SquadreComponent]
+ * - GET /api/squadre/{id}/atleti/scaduti -> Filtra e restituisce solo gli atleti della squadra che non hanno un certificato medico valido. [Nessun component specifico]
  */
 @RestController
 @RequestMapping("/api/squadre")
+@CrossOrigin(origins = "http://localhost:4200")
 public class SquadraController {
 
     @Autowired
@@ -41,11 +39,13 @@ public class SquadraController {
 
     // --- LETTURA SQUADRE ---
 
+    // Funzionalità: Recupera l'elenco di tutti gli elementi
     @GetMapping
     public ResponseEntity<List<SquadraResponseDTO>> getAll() {
         return ResponseEntity.ok(service.findAll());
     }
 
+    // Funzionalità: Recupera il dettaglio di un singolo elemento
     @GetMapping("/{id}")
     public ResponseEntity<SquadraResponseDTO> getById(@PathVariable Long id) {
         return service.findById(id)
@@ -53,11 +53,13 @@ public class SquadraController {
                 .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
+    // Funzionalità: Recupera le squadre gestite da un allenatore
     @GetMapping("/per-allenatore/{cf}")
     public ResponseEntity<List<SquadraResponseDTO>> findByAllenatoreCf(@PathVariable String cf) {
         return ResponseEntity.ok(service.findByAllenatoreCf(cf));
     }
 
+    // Funzionalità: Recupera le squadre a cui partecipa un atleta
     @GetMapping("/per-atleta/{cf}")
     public ResponseEntity<List<SquadraResponseDTO>> findByAtletaCf(@PathVariable String cf) {
         return ResponseEntity.ok(service.findByAtletaCf(cf));

@@ -11,8 +11,10 @@ import java.time.LocalDateTime;
 @Repository
 public interface PagamentoRepository extends JpaRepository<Pagamento, Long> {
     // Filtro per data
+    // Dichiarato per espansioni future o query base
     List<Pagamento> findByDataPagBetween(LocalDateTime start, LocalDateTime end);
 
     // Filtro per prezzo (Range)
+    // Dichiarato per espansioni future o query base
     List<Pagamento> findByImportoBetween(Double min, Double max);
 }

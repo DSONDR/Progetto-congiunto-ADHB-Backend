@@ -5,6 +5,7 @@ import lombok.Data;
 
 /**
  * DTO utilizzato dall'utente per aprire un nuovo ticket di assistenza.
+ * Ricevuto da AssistenzaController e processato da AssistenzaService.
  */
 @Data
 public class AssistenzaRequestDTO {
@@ -17,4 +18,7 @@ public class AssistenzaRequestDTO {
     
     @NotBlank(message = "Il codice fiscale dell'utente è obbligatorio")
     private String utenteCf;
+
+    @NotBlank(message = "Il contenuto della richiesta è obbligatorio")
+    private String contenuto;
 }

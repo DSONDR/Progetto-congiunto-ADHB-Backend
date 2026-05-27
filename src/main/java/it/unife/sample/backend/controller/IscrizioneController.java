@@ -8,12 +8,11 @@ import it.unife.sample.backend.model.IscrSingolaId;
 import it.unife.sample.backend.model.Iscrizione;
 import it.unife.sample.backend.model.Atleta;
 import it.unife.sample.backend.model.UsaAbb;
-import it.unife.sample.backend.dto.response.QrCodeValidationResponseDTO;
 import it.unife.sample.backend.service.AbbonamentoService;
 import it.unife.sample.backend.service.AttivitaService;
 import it.unife.sample.backend.service.IscrizioneService;
-import it.unife.sample.backend.service.QrCodeService;
 import it.unife.sample.backend.service.AtletaService;
+import it.unife.sample.backend.dto.response.UserResponseDTO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -24,19 +23,23 @@ import java.util.*;
 /**
  * Controller per la gestione delle Iscrizioni alle attività
  * Espone API dedicate per iscriversi a pagamento singolo o tramite abbonamento,
- * e per visualizzare lo storico/eliminare iscrizioni (disiscrizione)
+ * e per visualizzare lo storico/eliminare iscrizioni abbonamento
+ * Mappato lato frontend in: iscrizione.service.ts
  * 
  * API Esposte:
- * - GET /api/iscrizioni -> Elenco tutte le iscrizioni
- * - GET /api/iscrizioni/{id} -> Dettaglio iscrizione
- * - DELETE /api/iscrizioni/{id} -> Cancella iscrizione
- * - GET /api/iscrizioni/utente/{cf} -> Storico iscrizioni utente
- * - POST /api/iscrizioni/iscrivi -> Crea iscrizione con pagamento singolo
- * - POST /api/iscrizioni/usa-abbonamento -> Crea iscrizione scalando
- * abbonamento
+ * - GET /api/iscrizioni -> Recupera l'elenco di tutte le iscrizioni singole [Nessun component specifico]
+ * - GET /api/iscrizioni/{codiceAtt}/{idPagamento}/{cf} -> Recupera il dettaglio di un singolo elemento [Nessun component specifico]
+ * - DELETE /api/iscrizioni/{codiceAtt}/{idPagamento}/{cf} -> Cancellazione iscrizione singola [CalendarioComponent]
+ * - POST /api/iscrizioni/iscrivi -> Iscrizione singola (a pagamento) per una determinata attività. [CalendarioComponent / Corsi IstruttoreComponent / EventiComponent]
+ * - POST /api/iscrizioni/usa-abbonamento -> Iscrizione scalandola dal proprio abbonamento (tempo o [EventiComponent]
+ * - GET /api/iscrizioni/utente/{cf} -> Visualizza tutte le attività a cui si è iscritto l'atleta. [CalendarioComponent]
+ * - GET /api/iscrizioni/usi-abbonamento/utente/{cf} -> Visualizza tutte le attività a cui si è iscritto l'atleta. [CalendarioComponent]
+ * - GET /api/iscrizioni/attivita/{codiceAtt} -> Visualizza tutti gli utenti iscritti a un'attività (utile per l'istruttore) [Corsi IstruttoreComponent]
+ * - GET /api/iscrizioni -> Recupera l'elenco di tutte le iscrizioni singole [Nessun component specifico]
  */
 @RestController
 @RequestMapping("/api/iscrizioni")
+@CrossOrigin(origins = "http://localhost:4200")
 public class IscrizioneController {
 
     @Autowired
@@ -51,15 +54,13 @@ public class IscrizioneController {
     @Autowired
     private AbbonamentoService abbonamentoService;
 
-    @Autowired
-    private QrCodeService qrCodeService;
-
-    // Recupera l'elenco di tutte le iscrizioni singole
+    // Funzionalità: Recupera l'elenco di tutte le iscrizioni singole
     @GetMapping
     public List<Iscrizione> getAll() {
         return service.findAll();
     }
 
+    // Funzionalità: Recupera il dettaglio di un singolo elemento
     @GetMapping("/{codiceAtt}/{idPagamento}/{cf}")
     public ResponseEntity<Iscrizione> getById(@PathVariable Long codiceAtt,
             @PathVariable Long idPagamento,
@@ -70,8 +71,8 @@ public class IscrizioneController {
                 .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
-    // Funzionalità: Cancellazione iscrizione singola
     // (occhio nel service al vincolo di preavviso)
+    // Funzionalità: Cancellazione iscrizione singola
     @DeleteMapping("/{codiceAtt}/{idPagamento}/{cf}")
     public ResponseEntity<Void> delete(@PathVariable Long codiceAtt,
             @PathVariable Long idPagamento,
@@ -97,8 +98,8 @@ public class IscrizioneController {
         return ResponseEntity.ok(iscrizione);
     }
 
-    // Funzionalità: Iscrizione scalandola (usando) dal proprio abbonamento (tempo o
-    // ingressi).
+    // Funzionalità: Iscrizione scalandola dal proprio abbonamento (tempo o
+    // ingressi)
     @PostMapping("/usa-abbonamento")
     public ResponseEntity<UsaAbb> usaAbbonamento(@RequestBody UsaAbbonamentoRequest request) {
         Optional<Atleta> atleta = atletaService.findById(request.getAtletaCf());
@@ -111,52 +112,22 @@ public class IscrizioneController {
         return ResponseEntity.ok(uso);
     }
 
-    // Visualizza tutte le attività a cui si è iscritto l'atleta.
+    // Funzionalità: Visualizza tutte le attività a cui si è iscritto l'atleta.
     @GetMapping("/utente/{cf}")
     public List<Iscrizione> getByUtente(@PathVariable String cf) {
         return service.getStoricoUtente(cf);
     }
 
-    // Funzionalità: Validazione QR code per iscrizione o uso abbonamento.
-    // Il controller riceve due tipi opzionali dal service:
-    // 1) Optional<Iscrizione> da service.findByQrCode(codice)
-    // 2) Optional<UsaAbb> da service.findUsoByQrCode(codice)
-    // Se il primo Optional è presente, il codice è di una iscrizione singola.
-    // Altrimenti prova il secondo Optional per vedere se è un uso abbonamento.
-    @GetMapping("/qr/{codice}")
-    public ResponseEntity<QrCodeValidationResponseDTO> validateQrCode(@PathVariable String codice) {
-        return service.findByQrCode(codice)
-                .map(iscrizione -> ResponseEntity.ok(new QrCodeValidationResponseDTO(
-                        "ISCRIZIONE",
-                        iscrizione.getQrCode(),
-                        iscrizione.getUtente().getCf(),
-                        iscrizione.getAttivita().getCodiceAtt(),
-                        iscrizione.getPagamento().getIdPagamento(),
-                        null,
-                        iscrizione.getDataIscr())))
-                .or(() -> service.findUsoByQrCode(codice)
-                        .map(uso -> ResponseEntity.ok(new QrCodeValidationResponseDTO(
-                                "USO_ABBONAMENTO",
-                                uso.getQrCode(),
-                                uso.getUtente().getCf(),
-                                uso.getAttivita().getCodiceAtt(),
-                                null,
-                                uso.getAbbonamento().getNumeroAbb(),
-                                uso.getDataUso()))))
-                .orElseGet(() -> ResponseEntity.notFound().build());
+    // Funzionalità: Esegue l'operazione di getUsiAbbonamentoByUtente
+    @GetMapping("/usi-abbonamento/utente/{cf}")
+    public List<UsaAbb> getUsiAbbonamentoByUtente(@PathVariable String cf) {
+        return service.getStoricoUsiAbbonamentoUtente(cf);
     }
 
-    // Funzionalità: Generazione immagine QR. Chiamato dal frontend solo quando
-    // serve mostrare o scaricare l'immagine, indipendentemente dalla validazione.
-    @GetMapping(value = "/qr/{codice}/immagine", produces = MediaType.IMAGE_PNG_VALUE)
-    public ResponseEntity<byte[]> getQrCodeImage(@PathVariable String codice) {
-        boolean found = service.findByQrCode(codice).isPresent() || service.findUsoByQrCode(codice).isPresent();
-        if (!found) {
-            return ResponseEntity.notFound().build();
-        }
-        byte[] image = qrCodeService.generateQrCodeImage(codice, 300, 300);
-        return ResponseEntity.ok()
-                .header(HttpHeaders.CONTENT_TYPE, MediaType.IMAGE_PNG_VALUE)
-                .body(image);
+    // Funzionalità: Visualizza tutti gli utenti iscritti a un'attività (utile per
+    // l'istruttore)
+    @GetMapping("/attivita/{codiceAtt}")
+    public ResponseEntity<List<UserResponseDTO>> getIscrittiByAttivita(@PathVariable Long codiceAtt) {
+        return ResponseEntity.ok(service.getIscrittiByAttivita(codiceAtt));
     }
 }

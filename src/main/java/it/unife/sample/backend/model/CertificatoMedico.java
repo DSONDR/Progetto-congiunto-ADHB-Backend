@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import java.time.LocalDate;
+import com.fasterxml.jackson.annotation.*;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
@@ -22,6 +23,8 @@ public class CertificatoMedico {
     @NotNull
     @ManyToOne
     @JoinColumn(name = "Cf")
+    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
+    //Accessibile solo in scrittura (solo in richieste creazione/agg, non lettura e quindi risposte json
     private Utente utente;
 
     @Column(name = "Tipo")

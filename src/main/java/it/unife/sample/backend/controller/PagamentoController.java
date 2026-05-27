@@ -13,23 +13,26 @@ import java.util.*;
  * Controller per la visualizzazione dei Pagamenti (ACCESSO IN LETTURA)
  * NOTA: I pagamenti sono un registro immutabile e vengono creati
  * automaticamente in fase di iscrizione o sottoscrizione.
+ * Altra nota: i pagamenti lato frontend per ora sono fittizzi, quindi quasi tutto scollegato
+ * Mappato lato frontend in: pagamento.service.ts
  * 
  * API Esposte:
- * - GET /api/pagamenti -> Elenco di tutti i pagamenti x admin
- * - GET /api/pagamenti/{id} -> Dettaglio pagamento
- * - GET /api/pagamenti/ricerca -> Filtro per data e/o importo
- * - GET /api/pagamenti/attivita/{id} -> Pagamenti associati a una specifica attività
- * - GET /api/pagamenti/utente/{cf} -> Storico transazioni di un utente
- * - GET /api/pagamenti/{id}/ricevuta -> Stampa ricevuta testuale
+ * - GET /api/pagamenti -> Ottiene la lista completa dei pagamenti [Nessun component specifico]
+ * - GET /api/pagamenti/{id} -> Dettaglio di un singolo pagamento tramite ID [Nessun component specifico]
+ * - GET /api/pagamenti/ricerca -> Ricerca avanzata pagamenti filtrando per data o range di importo [Nessun component specifico]
+ * - GET /api/pagamenti/attivita/{id} -> Storico dei pagamenti legati alle iscrizioni per una specifica attività [Nessun component specifico]
+ * - GET /api/pagamenti/utente/{cf} -> Recupera lo storico di un utente specifico [Nessun component specifico]
+ * - GET /api/pagamenti/{id}/ricevuta -> Genera e restituisce una ricevuta testuale per il pagamento [Nessun component specifico]
  */
 @RestController
 @RequestMapping("/api/pagamenti")
+@CrossOrigin(origins = "http://localhost:4200")
 public class PagamentoController {
 
     @Autowired
     private PagamentoService service;
 
-    // Funzionalità: Ottiene la lista completa dei pagamenti (admin)
+    // Funzionalità: Ottiene la lista completa dei pagamenti
     @GetMapping
     public ResponseEntity<List<PagamentoResponseDTO>> getAll() {
         return ResponseEntity.ok(service.findAll());
@@ -43,7 +46,8 @@ public class PagamentoController {
                 .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
-    // Funzionalità: Ricerca avanzata pagamenti filtrando per data o range di importo
+    // Funzionalità: Ricerca avanzata pagamenti filtrando per data o range di
+    // importo
     @GetMapping("/ricerca")
     public ResponseEntity<List<PagamentoResponseDTO>> ricerca(
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime da,
@@ -53,19 +57,20 @@ public class PagamentoController {
         return ResponseEntity.ok(service.ricercaAvanzata(da, a, min, max));
     }
 
-    // Funzionalità: Storico dei pagamenti legati alle iscrizioni per una specifica attività
+    // Funzionalità: Storico dei pagamenti legati alle iscrizioni per una specifica
+    // attività
     @GetMapping("/attivita/{id}")
     public ResponseEntity<List<PagamentoResponseDTO>> getByAttivita(@PathVariable Long id) {
         return ResponseEntity.ok(service.getPagamentiPerAttivita(id));
     }
 
-    // Funzionalità: Recupera lo storico transazioni completo di un determinato utente (Iscrizioni + Abbonamenti)
+    // Funzionalità: Recupera lo storico di un utente specifico
     @GetMapping("/utente/{cf}")
     public ResponseEntity<List<PagamentoResponseDTO>> getStoricoUtente(@PathVariable String cf) {
         return ResponseEntity.ok(service.getStoricoTransazioni(cf));
     }
 
-    // Funzionalità: Genera e restituisce una ricevuta testuale formattata per un pagamento
+    // Funzionalità: Genera e restituisce una ricevuta testuale per il pagamento
     @GetMapping(value = "/{id}/ricevuta", produces = "text/plain;charset=UTF-8")
     public ResponseEntity<String> getRicevuta(@PathVariable Long id) {
         try {

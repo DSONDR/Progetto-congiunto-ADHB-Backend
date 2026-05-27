@@ -18,9 +18,12 @@ import it.unife.sample.backend.model.UsaAbbId;
 import it.unife.sample.backend.repository.IscrizioneRepository;
 import it.unife.sample.backend.repository.PagamentoRepository;
 import it.unife.sample.backend.repository.UsaAbbRepository;
+import it.unife.sample.backend.repository.AtletaRepository;
 import it.unife.sample.backend.service.AbbonamentoService;
 import it.unife.sample.backend.service.CertificatoMedicoService;
 import it.unife.sample.backend.dto.response.TipoAbbonamentoDTO;
+import it.unife.sample.backend.dto.response.UserResponseDTO;
+import java.util.stream.Collectors;
 
 @Service
 public class IscrizioneService {
@@ -32,6 +35,8 @@ public class IscrizioneService {
     @Autowired
     private UsaAbbRepository usaAbbRepo;
     @Autowired
+    private AtletaRepository atletaRepo;
+    @Autowired
     private AbbonamentoService abbonamentoService;
     @Autowired
     private CertificatoMedicoService certService;
@@ -41,14 +46,17 @@ public class IscrizioneService {
         return iscRepo.findAll();
     }
 
+    // CRUD base
     public Optional<Iscrizione> findById(IscrSingolaId id) {
         return iscRepo.findById(id);
     }
 
+    // CRUD base
     public Iscrizione save(Iscrizione iscrizione) {
         return iscRepo.save(iscrizione);
     }
 
+    // CRUD base
     public void deleteById(IscrSingolaId id) {
         iscRepo.deleteById(id);
     }
@@ -57,6 +65,8 @@ public class IscrizioneService {
     // Esegue l'iscrizione singola a un'attività pagando la quota sul momento
     // Genera quindi un nuovo Pagamento e l'Iscrizione collegata all'Atleta e
     // all'Attività
+    // Usata in: IscrizioneController.iscriviSingola
+    // Frontend: Iscrizione Evento
     @Transactional
     public Iscrizione iscriviSingola(Atleta atleta, Attivita attivita, Double importo, String metodo) {
 
@@ -73,6 +83,7 @@ public class IscrizioneService {
         if (!isPostoDisponibile(attivita)) {
             throw new IllegalStateException("Non ci sono posti disponibili nell'attività");
         }
+        checkSovrapposizioni(atleta, attivita);
 
         // Gestione (e effettivo) del pagamento
         Pagamento p = new Pagamento();
@@ -88,7 +99,12 @@ public class IscrizioneService {
         i.setAttivita(attivita);
         i.setPagamento(p);
         i.setDataIscr(LocalDate.now());
-        i.setQrCode(UUID.randomUUID().toString());
+
+        // Gamification: +1 punto per 1 euro speso
+        int puntiDaAggiungere = (int) Math.floor(importo);
+        int puntiAttuali = (atleta.getPuntiGamification() != null) ? atleta.getPuntiGamification() : 0;
+        atleta.setPuntiGamification(puntiAttuali + puntiDaAggiungere);
+        atletaRepo.save(atleta);
 
         return iscRepo.save(i);
     }
@@ -96,8 +112,11 @@ public class IscrizioneService {
     // Iscrizione con Abbonamento: di un Atleta a un'attività "scalandola" dal
     // totale se previsto nel tipo di Abbonamento
     // Esegue i controlli su stato, scadenza e capienza prima di concedere l'uso
+    // Usata in: IscrizioneController.usaAbbonamento
+    // Frontend: Iscrizione Evento / Dashboard / Acquisto
     @Transactional
     public UsaAbb iscriviConAbbonamento(Atleta atleta, Attivita attivita, Abbonamento abbonamento) {
+
         // Controlli preliminari: Abbonamento presente, attivo e di appartenenza
         // all'Atleta
         if (abbonamento == null) {
@@ -119,6 +138,7 @@ public class IscrizioneService {
         if (!isPostoDisponibile(attivita)) {
             throw new IllegalStateException("Non ci sono posti disponibili nell'attività");
         }
+        checkSovrapposizioni(atleta, attivita);
 
         // Passati i primi controlli, si prosegue con l'uso dell'abbonamento
         // Definisce il tipo di abbonamento (Tempo o Ingressi)
@@ -157,13 +177,14 @@ public class IscrizioneService {
         uso.setAttivita(attivita);
         uso.setUtente(atleta);
         uso.setDataUso(LocalDate.now());
-        uso.setQrCode(UUID.randomUUID().toString());
 
         return usaAbbRepo.save(uso);
     }
 
     // Cancella un'iscrizione singola, se manca ancora il giusto preavviso
     // all'evento
+    // Usata in: IscrizioneController.delete
+    // Frontend: Iscrizione Evento
     @Transactional
     public void cancellaIscrizione(IscrSingolaId idIscrizione) {
         Iscrizione isc = iscRepo.findById(idIscrizione)
@@ -192,7 +213,6 @@ public class IscrizioneService {
     }
 
     // Verifica la compatibilità d'età dell'atleta col tipo di attività
-    // (Junior/Senior)
     // Usata sopra in iscriviSingola ed iscriviConAbbonamento
     public boolean isDestinatarioCompatibile(Utente utente, Attivita attivita) {
         String destinatario = attivita.getDestinatario();
@@ -221,18 +241,82 @@ public class IscrizioneService {
         return postiOccupati < attivita.getMaxPartecipanti();
     }
 
+    // Funzionalità: Controlla se l'utente è già iscritto all'attività o ha
+    // sovrapposizioni orarie
+    // Usata in: IscrizioneService.iscrivi, IscrizioneService.iscriviConAbbonamento
+    // Frontend: Iscrizione Evento
+    private void checkSovrapposizioni(Atleta atleta, Attivita attivita) {
+        List<Attivita> attivitaIscritto = new ArrayList<>();
+        iscRepo.findByUtenteCf(atleta.getCf()).forEach(i -> attivitaIscritto.add(i.getAttivita()));
+        usaAbbRepo.findByUtenteCf(atleta.getCf()).forEach(u -> attivitaIscritto.add(u.getAttivita()));
+
+        for (Attivita a : attivitaIscritto) {
+            if (a.getCodiceAtt().equals(attivita.getCodiceAtt())) {
+                throw new IllegalStateException("Sei già iscritto a questa attività");
+            }
+            // Controllo sovrapposizioni di date
+            if (a.getDateAtts() != null && attivita.getDateAtts() != null) {
+                for (DateAtt d1 : a.getDateAtts()) {
+                    for (DateAtt d2 : attivita.getDateAtts()) {
+                        if (d1.getDate().equals(d2.getDate())) {
+                            throw new IllegalStateException(
+                                    "Hai già un'altra attività nello stesso orario (" + a.getNomeAtt() + ")");
+                        }
+                    }
+                }
+            }
+        }
+    }
+
     // Visualizza tutte le attività a cui si è iscritto l'atleta
+    // Usata in: IscrizioneController.getByUtente
+    // Frontend: Iscrizione Evento / Login / Utenti
     public List<Iscrizione> getStoricoUtente(String cf) {
         return iscRepo.findByUtenteCf(cf);
     }
 
-    // Funzionalità validazione qrcode: cerca ... e restituisce il dto appoisito
-    // Cerca un'iscrizione singola via QR code.
-    public Optional<Iscrizione> findByQrCode(String qrCode) {
-        return iscRepo.findByQrCode(qrCode);
+    // Funzionalità: Ottiene i dati di StoricoUsiAbbonamentoUtente
+    // Usata in: IscrizioneController.getUsiAbbonamentoByUtente
+    // Frontend: Login / Utenti / Iscrizione Evento / Dashboard / Acquisto
+    public List<UsaAbb> getStoricoUsiAbbonamentoUtente(String cf) {
+        return usaAbbRepo.findByUtenteCf(cf);
     }
-    // Cerca un uso abbonamento via QR code.
-    public Optional<UsaAbb> findUsoByQrCode(String qrCode) {
-        return usaAbbRepo.findByQrCode(qrCode);
+
+    // Visualizza tutti gli iscritti a un'attività specifica (unendo iscrizioni
+    // singole e usi abbonamento)
+    // Usata in: IscrizioneController.getIscrittiByAttivita
+    // Frontend: Iscrizione Evento / Calendario / Eventi
+    public List<UserResponseDTO> getIscrittiByAttivita(Long idAttivita) {
+        List<Utente> utenti = new ArrayList<>();
+
+        // Estrai utenti dalle iscrizioni singole
+        utenti.addAll(iscRepo.findByAttivitaCodiceAtt(idAttivita).stream()
+                .map(Iscrizione::getUtente)
+                .collect(Collectors.toList()));
+
+        // Estrai utenti dagli usi abbonamento
+        utenti.addAll(usaAbbRepo.findByAttivitaCodiceAtt(idAttivita).stream()
+                .map(UsaAbb::getUtente)
+                .collect(Collectors.toList()));
+
+        // Rimuovi eventuali duplicati (stesso utente iscritto più volte per sbaglio o
+        // disallineamento)
+        utenti = utenti.stream().distinct().collect(Collectors.toList());
+
+        // Mappa Utente in UserResponseDTO
+        return utenti.stream().map(u -> {
+            UserResponseDTO dto = new UserResponseDTO();
+            dto.setCf(u.getCf());
+            dto.setNome(u.getNome());
+            dto.setCognome(u.getCognome());
+            dto.setEmail(u.getEmail());
+            dto.setGenere(u.getGenere());
+            dto.setDataNascita(u.getDataNascita());
+            dto.setCittaResidenza(u.getCittaResidenza());
+            dto.setUsername(u.getUsername());
+            dto.setTipoIscritto(u.getTipoIscritto() != null ? u.getTipoIscritto() : "ATLETA");
+            dto.setPuntiGamification(u instanceof Atleta ? ((Atleta) u).getPuntiGamification() : 0);
+            return dto;
+        }).collect(Collectors.toList());
     }
 }

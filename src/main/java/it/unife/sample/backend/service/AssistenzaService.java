@@ -30,6 +30,8 @@ public class AssistenzaService {
         dto.setTipoAss(a.getTipoAss());
         dto.setStato(a.getStato());
         dto.setSoddisfazione(a.getSoddisfazione());
+        dto.setContenuto(a.getContenuto());
+        dto.setRisposta(a.getRisposta());
         if (a.getUtente() != null) {
             dto.setUtenteCf(a.getUtente().getCf());
         }
@@ -39,24 +41,33 @@ public class AssistenzaService {
         return dto;
     }
 
-    // Lettura (Admin)
+    // CRUD base
     public List<AssistenzaResponseDTO> findAll() {
         return aRepo.findAll().stream().map(this::mapToDTO).collect(Collectors.toList());
     }
 
+    // CRUD base
     public Optional<AssistenzaResponseDTO> findById(Long id) {
         return aRepo.findById(id).map(this::mapToDTO);
     }
 
-    // Lettura filtrata
+    // Funzionalità: Recupera i dati filtrando per Stato
+    // Usata in: AssistenzaController.getByStato
+    // Frontend: Area Personale (Assistenza)
     public List<AssistenzaResponseDTO> findByStato(String stato) {
         return aRepo.findByStato(stato).stream().map(this::mapToDTO).collect(Collectors.toList());
     }
 
+    // Funzionalità: Recupera i dati filtrando per Utente
+    // Usata in: AssistenzaController.getByUtente
+    // Frontend: Area Personale (Assistenza) / Login / Utenti
     public List<AssistenzaResponseDTO> findByUtente(String cf) {
         return aRepo.findByUtenteCf(cf).stream().map(this::mapToDTO).collect(Collectors.toList());
     }
 
+    // Funzionalità: Recupera i dati filtrando per Assistente
+    // Usata in: AssistenzaController.getByAssistente
+    // Frontend: Area Personale (Assistenza)
     public List<AssistenzaResponseDTO> findByAssistente(String cf) {
         return aRepo.findByAssistenteCf(cf).stream().map(this::mapToDTO).collect(Collectors.toList());
     }
@@ -64,8 +75,10 @@ public class AssistenzaService {
     // OPERAZIONI DI BUSINESS SUI TICKET
 
     /**
-     * 1. Apertura: L'utente apre il ticket (IN ATTESA)
+     * 1. Apertura: L'utente apre il ticket (APERTO)
      */
+    // Usata in: AssistenzaController.apriTicket
+    // Frontend: Area Personale (Assistenza)
     @Transactional
     public AssistenzaResponseDTO apriTicket(AssistenzaRequestDTO dto) {
         Utente utente = uRepo.findById(dto.getUtenteCf())
@@ -75,7 +88,8 @@ public class AssistenzaService {
         a.setUtente(utente);
         a.setOggetto(dto.getOggetto());
         a.setTipoAss(dto.getTipoAss());
-        a.setStato("IN ATTESA");
+        a.setContenuto(dto.getContenuto());
+        a.setStato("APERTO");
         a.setSoddisfazione(null);
         a.setAssistente(null);
 
@@ -83,18 +97,20 @@ public class AssistenzaService {
     }
 
     /**
-     * 2. Presa in carico: Un admin/staff si assegna il ticket (IN LAVORAZIONE)
+     * 2. Presa in carico: Un admin/staff si prende in carico il ticket (IN LAVORAZIONE)
      */
+    // Usata in: AssistenzaController.prendiInCarico
+    // Frontend: Area Personale (Assistenza)
     @Transactional
     public AssistenzaResponseDTO prendiInCarico(Long idTicket, String assistenteCf) {
         Assistenza a = aRepo.findById(idTicket)
                 .orElseThrow(() -> new IllegalArgumentException("Ticket non trovato"));
-        
+
         Utente assistente = uRepo.findById(assistenteCf)
                 .orElseThrow(() -> new IllegalArgumentException("Assistente non trovato"));
 
-        if (!"IN ATTESA".equals(a.getStato())) {
-            throw new IllegalStateException("Solo i ticket IN ATTESA possono essere presi in carico");
+        if (!"APERTO".equals(a.getStato())) {
+            throw new IllegalStateException("Solo i ticket APERTI possono essere presi in carico");
         }
 
         a.setAssistente(assistente);
@@ -105,8 +121,10 @@ public class AssistenzaService {
     /**
      * 3. Risoluzione: L'assistente chiude l'intervento (RISOLTO)
      */
+    // Usata in: AssistenzaController.risolviTicket
+    // Frontend: Area Personale (Assistenza)
     @Transactional
-    public AssistenzaResponseDTO risolviTicket(Long idTicket) {
+    public AssistenzaResponseDTO risolviTicket(Long idTicket, String risposta) {
         Assistenza a = aRepo.findById(idTicket)
                 .orElseThrow(() -> new IllegalArgumentException("Ticket non trovato"));
 
@@ -115,12 +133,15 @@ public class AssistenzaService {
         }
 
         a.setStato("RISOLTO");
+        a.setRisposta(risposta);
         return mapToDTO(aRepo.save(a));
     }
 
     /**
      * 4. Valutazione: L'utente valuta l'assistenza (CHIUSO)
      */
+    // Usata in: AssistenzaController.risolviTicket
+    // Frontend: Area Personale (Assistenza)
     @Transactional
     public AssistenzaResponseDTO valutaTicket(Long idTicket, Integer voto) {
         Assistenza a = aRepo.findById(idTicket)

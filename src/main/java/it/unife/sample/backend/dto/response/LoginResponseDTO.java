@@ -1,6 +1,7 @@
 package it.unife.sample.backend.dto.response;
 
 import lombok.Data;
+import java.time.LocalDate;
 
 /**
  * DTO utilizzato per restituire i dati di un Utente in seguito a un Login
@@ -22,7 +23,13 @@ public class LoginResponseDTO {
 
     private String email;
 
+    private LocalDate dataNascita;
+
     private String tipoIscritto;
+
+    private LocalDate scadenzaCertificato;
+
+    private Integer puntiGamification;
 
     private String messaggio;
 }

@@ -13,3 +13,5 @@ public class PartecipazioneSqId implements Serializable {
     private Long squadra;
     private Long attivita;
 }
+
+//EntitàId.java, richiesta da JPA per le chiavi composte

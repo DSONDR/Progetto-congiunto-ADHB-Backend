@@ -8,27 +8,27 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import jakarta.validation.Valid;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Controller per la gestione dei Ticket di Assistenza.
- * Il controller aderisce alle direttive Security by Design, omettendo
- * i CRUD classici generici e instradando le operazioni tramite le
- * specifiche transizioni di stato.
+ * Implementa e gestisce la logica a stati dei Ticket
+ * Mappato lato frontend in: assistenza.service.ts
  * 
  * API Esposte:
- * - POST /api/assistenza/apri -> L'utente apre il ticket
- * - PUT /api/assistenza/{id}/prendi-in-carico/{cf} -> L'admin prende in carico
- * - PUT /api/assistenza/{id}/risolvi -> L'admin risolve il ticket
- * - PUT /api/assistenza/{id}/valuta/{voto} -> L'utente assegna il feedback e lo chiude
- * 
- * Letture (GET):
- * - /api/assistenza -> Tutti (admin)
- * - /api/assistenza/utente/{cf} -> Filtra per utente
- * - /api/assistenza/assistente/{cf} -> Filtra per assistente
- * - /api/assistenza/stato/{stato} -> Filtra per stato
+ * - POST /api/assistenza/apri -> L'utente apre un nuovo ticket (Stato: APERTO) [AssistenzaComponent]
+ * - PUT /api/assistenza/{id}/prendi-in-carico/{cfAssistente} -> Lo staff prende in carico un ticket aperto (Stato: IN LAVORAZIONE) [Risolvi AssistenzeComponent]
+ * - PUT /api/assistenza/{id}/risolvi -> Lo staff marca il ticket come completato (Stato: RISOLTO) [Risolvi AssistenzeComponent]
+ * - PUT /api/assistenza/{id}/valuta/{voto} -> L'utente assegna il voto al ticket risolto (Stato: CHIUSO) [AssistenzaComponent]
+ * - GET /api/assistenza -> Ottiene tutti i ticket [Risolvi AssistenzeComponent]
+ * - GET /api/assistenza/{id} -> Ottiene un ticket specifico [Risolvi AssistenzeComponent]
+ * - GET /api/assistenza/stato/{stato} -> Filtra per stato (es. APERTO, IN LAVORAZIONE) [Nessun component specifico]
+ * - GET /api/assistenza/utente/{cf} -> Mostra i ticket aperti da un determinato utente [Nessun component specifico]
+ * - GET /api/assistenza/assistente/{cf} -> Mostra i ticket presi in carico da un determinato assistente [Nessun component specifico]
  */
 @RestController
 @RequestMapping("/api/assistenza")
+@CrossOrigin(origins = "http://localhost:4200")
 public class AssistenzaController {
 
     @Autowired
@@ -36,7 +36,7 @@ public class AssistenzaController {
 
     // --- LOGICHE DI SCRITTURA (FLUSSO OPERATIVO) ---
 
-    // Funzionalità: L'utente apre un nuovo ticket (Stato: IN ATTESA)
+    // Funzionalità: L'utente apre un nuovo ticket (Stato: APERTO)
     @PostMapping("/apri")
     public ResponseEntity<AssistenzaResponseDTO> apriTicket(@RequestBody @Valid AssistenzaRequestDTO request) {
         return ResponseEntity.ok(service.apriTicket(request));
@@ -50,8 +50,9 @@ public class AssistenzaController {
 
     // Funzionalità: Lo staff marca il ticket come completato (Stato: RISOLTO)
     @PutMapping("/{id}/risolvi")
-    public ResponseEntity<AssistenzaResponseDTO> risolviTicket(@PathVariable Long id) {
-        return ResponseEntity.ok(service.risolviTicket(id));
+    public ResponseEntity<AssistenzaResponseDTO> risolviTicket(@PathVariable Long id, @RequestBody Map<String, String> body) {
+        String risposta = body.get("risposta");
+        return ResponseEntity.ok(service.risolviTicket(id, risposta));
     }
 
     // Funzionalità: L'utente assegna il voto al ticket risolto (Stato: CHIUSO)
@@ -66,13 +67,13 @@ public class AssistenzaController {
 
     // --- LOGICHE DI LETTURA ---
 
-    // Ottiene tutti i ticket
+    // Funzionalità: Ottiene tutti i ticket
     @GetMapping
     public ResponseEntity<List<AssistenzaResponseDTO>> getAll() {
         return ResponseEntity.ok(service.findAll());
     }
 
-    // Ottiene un ticket specifico
+    // Funzionalità: Ottiene un ticket specifico
     @GetMapping("/{id}")
     public ResponseEntity<AssistenzaResponseDTO> getById(@PathVariable Long id) {
         return service.findById(id)
@@ -80,19 +81,19 @@ public class AssistenzaController {
                 .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
-    // Filtra per stato (es. IN ATTESA, IN LAVORAZIONE)
+    // Funzionalità: Filtra per stato (es. APERTO, IN LAVORAZIONE)
     @GetMapping("/stato/{stato}")
     public ResponseEntity<List<AssistenzaResponseDTO>> getByStato(@PathVariable String stato) {
         return ResponseEntity.ok(service.findByStato(stato));
     }
 
-    // Mostra i ticket aperti da un determinato utente
+    // Funzionalità: Mostra i ticket aperti da un determinato utente
     @GetMapping("/utente/{cf}")
     public ResponseEntity<List<AssistenzaResponseDTO>> getByUtente(@PathVariable String cf) {
         return ResponseEntity.ok(service.findByUtente(cf));
     }
 
-    // Mostra i ticket presi in carico da un determinato assistente
+    // Funzionalità: Mostra i ticket presi in carico da un determinato assistente
     @GetMapping("/assistente/{cf}")
     public ResponseEntity<List<AssistenzaResponseDTO>> getByAssistente(@PathVariable String cf) {
         return ResponseEntity.ok(service.findByAssistente(cf));

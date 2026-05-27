@@ -18,14 +18,17 @@ public class IstruttoreService {
         return repository.findAll();
     }
 
+    // CRUD base
     public Optional<Istruttore> findById(String id) {
         return repository.findById(id);
     }
 
+    // CRUD base
     public Istruttore save(Istruttore istruttore) {
         return repository.save(istruttore);
     }
 
+    // CRUD base
     public void deleteById(String id) {
         repository.deleteById(id);
     }

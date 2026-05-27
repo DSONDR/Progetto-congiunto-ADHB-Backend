@@ -2,6 +2,10 @@ package it.unife.sample.backend.dto.response;
 
 import lombok.Data;
 
+/**
+ * DTO di risposta per i ticket di assistenza.
+ * Creato da AssistenzaService (tramite conversione dell'entità Assistenza) e restituito da AssistenzaController.
+ */
 @Data
 public class AssistenzaResponseDTO {
     private Long idTicket;
@@ -11,4 +15,6 @@ public class AssistenzaResponseDTO {
     private Integer soddisfazione;
     private String utenteCf;
     private String assistenteCf;
+    private String contenuto;
+    private String risposta;
 }

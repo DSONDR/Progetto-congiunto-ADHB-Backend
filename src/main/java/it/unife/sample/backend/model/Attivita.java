@@ -34,6 +34,9 @@ public class Attivita {
     @Column(name = "Max_Partecipanti")
     private Integer maxPartecipanti;
 
+    @Column(name = "Descrizione", length = 2000)
+    private String descrizione;
+
     @NotNull(message = "Istruttore obbligatorio")
     @ManyToOne
     @JoinColumn(name = "Cf_Istruttore")
@@ -49,7 +52,7 @@ public class Attivita {
 
     @ManyToMany
     @JoinTable(
-        name = "ATTIVITA_SQUADRA",
+        name = "PARTECIPAZIONE_SQ",
         joinColumns = @JoinColumn(name = "Codice_Att"),
         inverseJoinColumns = @JoinColumn(name = "Id_Squadra")
     )

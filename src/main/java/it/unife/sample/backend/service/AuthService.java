@@ -6,7 +6,10 @@ import it.unife.sample.backend.dto.response.LoginResponseDTO;
 import it.unife.sample.backend.dto.response.UserResponseDTO;
 import it.unife.sample.backend.model.Atleta;
 import it.unife.sample.backend.model.Utente;
+import it.unife.sample.backend.model.CertificatoMedico;
 import it.unife.sample.backend.repository.UtenteRepository;
+
+import java.time.LocalDate;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -18,13 +21,11 @@ public class AuthService {
     @Autowired
     private UtenteRepository utenteRepository;
 
-    // Funzionalità di REGISTRAZIONE [Solo degli atleti, gli altri non si registrano
-    // da soli]
-    /**
-     * Registra un nuovo atleta nel database.
-     * Crea prima l'istanza di Atleta, la popola coi dati del DTO,
-     * e infine la salva nel repository.
-     */
+    // Funzionalità di REGISTRAZIONE [Solo degli atleti
+    // Registra un nuovo atleta nel database: 
+    // Crea prima l'istanza di Atleta, la popola coi dati del DTO, e infine la salva nel repository.
+    // Usata in: AuthController.register
+    // Frontend: Registrazione / Utenti
     @Transactional
     public UserResponseDTO register(RegisterRequestDTO dto) {
 
@@ -56,8 +57,8 @@ public class AuthService {
         // Temporaneo
         atleta.setPassword(dto.getPassword());
         // Campi opzionali
-        atleta.setStipendio(null);
         atleta.setCertificatiMedici(null);
+        atleta.setPuntiGamification(0);
         // Salvo nel DB
         atleta = utenteRepository.save(atleta);
         // E infine rispondo con i dati formattati nel DTO
@@ -65,14 +66,13 @@ public class AuthService {
     }
 
     // Funzionalità di LOGIN [stavolta per tutti i tipi]
-    /**
-     * Esegue il login controllando le credenziali (email e password).
-     * Restituisce i dati dell'utente formattati nel DTO di risposta per non esporre
-     * la password al FE.
-     */
+    // Esegue il login controllando le credenziali (email e password).
+    // Restituisce i dati dell'utente formattati nel DTO di risposta per non esporre la password al FE.
+    // Usata in: AuthController.login
+    // Frontend: Login / Utenti
     public LoginResponseDTO login(LoginRequestDTO dto) {
 
-        Utente utente = utenteRepository.findByEmail(dto.getEmail())
+        Utente utente = utenteRepository.findByUsernameOrEmail(dto.getEmail(), dto.getEmail())
                 .orElseThrow(() -> new RuntimeException("Utente non trovato"));
 
         // Controllo password se giusta login
@@ -87,21 +87,34 @@ public class AuthService {
         response.setCognome(utente.getCognome());
         response.setEmail(utente.getEmail());
         response.setUsername(utente.getUsername());
+        response.setDataNascita(utente.getDataNascita());
         response.setTipoIscritto(utente.getTipoIscritto());
+        response.setPuntiGamification(utente.getPuntiGamification());
         response.setMessaggio("Login effettuato");
+
+        if (utente.getCertificatiMedici() != null && !utente.getCertificatiMedici().isEmpty()) {
+            LocalDate scadenza = utente.getCertificatiMedici().stream()
+                    .map(CertificatoMedico::getDataScadenza)
+                    .max(LocalDate::compareTo)
+                    .orElse(null);
+            response.setScadenzaCertificato(scadenza);
+        }
+
         return response;
     }
 
     // Funzionalità di LOGOUT, vuoto perchè solo logico, su frontend
+    // Usata in: AuthController.logout
+    // Frontend: Logout / Utenti
     public String logout() {
         return "Logout effettuato";
     }
 
-    // Funzionalità di CANCELLAZIONE ACCOUNT
-    /**
-     * Elimina fisicamente l'account e tutti i dati correlati
-     * dell'utente dal database *in modo transazionale.
-     */
+    // Funzionalità di CANCELLAZIONE ACCOUNT:
+    // Elimina fisicamente l'account e tutti i dati correlati dell'utente dal database 
+    // in modo transazionale.
+    // Usata in: AuthController.deleteAccount
+    // Frontend: Login / Utenti
     @Transactional
     public void deleteAccount(String cf) {
 
@@ -124,6 +137,16 @@ public class AuthService {
         dto.setUsername(utente.getUsername());
         dto.setEmail(utente.getEmail());
         dto.setTipoIscritto(utente.getTipoIscritto());
+        dto.setPuntiGamification(utente.getPuntiGamification());
+
+        if (utente.getCertificatiMedici() != null && !utente.getCertificatiMedici().isEmpty()) {
+            LocalDate scadenza = utente.getCertificatiMedici().stream()
+                    .map(CertificatoMedico::getDataScadenza)
+                    .max(LocalDate::compareTo)
+                    .orElse(null);
+            dto.setScadenzaCertificato(scadenza);
+        }
+
         return dto;
     }
 }

@@ -17,23 +17,22 @@ import java.util.*;
 /**
  * Controller per la gestione delle Sottoscrizioni (acquisto abbonamenti)
  * Espone API dedicate per acquistare un tipo di abbonamento dal listino,
- * e per visualizzare lo storico/eliminare l'abbonamento acquistato.
- *
+ * e per visualizzare lo storico/eliminare/rinnovare l'abbonamento acquistato.
+ * Mappato lato frontend in: sottoscrizione.service.ts
+ * 
  * API Esposte:
- * - GET /api/sottoscrizioni/ -> Elenco di tutti gli abbonamenti venduti
- * - GET /api/sottoscrizioni/{id} -> Dettaglio abbonamento acquistato
- * - DELETE /api/sottoscrizioni/{id} -> Cancella abbonamento acquistato
- * - GET /api/sottoscrizioni/storicoUtente/{cf} -> Storico sottoscrizioni utente
- * - POST /api/sottoscrizioni/sottoscrivi -> Acquisto nuovo abbonamento dal
- * listino
- * - POST /api/sottoscrizioni/rinnova/{id} -> Rinnovo abbonamento scaduto
- * - POST /api/sottoscrizioni/disdici/{id} -> Cancella abbonamento (impedisce
- * rinnovi)
- * - GET /api/sottoscrizioni/abbonamenti/{cf} -> Abbonamenti attivi/storici di
- * un atleta
+ * - GET /api/sottoscrizioni -> Recupera tutte le sottoscrizioni (per tutti) [EventiComponent]
+ * - GET /api/sottoscrizioni/{numeroAbb}/{idPagamento}/{cf} -> Recupera una sottoscrizione specifica (cf, numeroAbb, idPagamento) [EventiComponent]
+ * - DELETE /api/sottoscrizioni/{numeroAbb}/{idPagamento}/{cf} -> Elimina un elemento [Nessun component specifico]
+ * - GET /api/sottoscrizioni/storicoUtente/{cf} -> Recupera lo storico di un utente specifico [Nessun component specifico]
+ * - POST /api/sottoscrizioni/sottoscrivi -> Acquisto di un nuovo abbonamento scegliendolo dal listino [Nessun component specifico]
+ * - POST /api/sottoscrizioni/rinnova/{numeroAbb} -> Rinnovo di un abbonamento esistente (SCADUTO o ATTIVO) [Nessun component specifico]
+ * - POST /api/sottoscrizioni/disdici/{numeroAbb} -> Disdetta di un abbonamento [AbbonamentiComponent]
+ * - GET /api/sottoscrizioni/abbonamenti/{cf} -> Visualizza tutti gli abbonamenti (attivi e storici) di un [Nessun component specifico]
  */
 @RestController
 @RequestMapping("/api/sottoscrizioni")
+@CrossOrigin(origins = "http://localhost:4200")
 public class SottoscrizioneController {
 
     @Autowired
@@ -45,13 +44,13 @@ public class SottoscrizioneController {
     @Autowired
     private AbbonamentoService abbonamentoService;
 
-    // Recupera tutte le sottoscrizioni (per tutti)
+    // Funzionalità: Recupera tutte le sottoscrizioni (per tutti)
     @GetMapping
     public List<Sottoscrizione> getAll() {
         return service.findAll();
     }
 
-    // Recupera una sottoscrizione specifica (cf, numeroAbb, idPagamento)
+    // Funzionalità: Recupera una sottoscrizione specifica (cf, numeroAbb, idPagamento)
     @GetMapping("/{numeroAbb}/{idPagamento}/{cf}")
     public ResponseEntity<Sottoscrizione> getById(@PathVariable Long numeroAbb,
             @PathVariable Long idPagamento,
@@ -63,7 +62,7 @@ public class SottoscrizioneController {
     }
 
     // Cancella una sottoscrizione specifica (cf, numeroAbb, idPagamento)
-    // TODO: Chi puo cancellare le sottoscrizioni, cosa succede dopo?
+    // Funzionalità: Elimina un elemento
     @DeleteMapping("/{numeroAbb}/{idPagamento}/{cf}")
     public ResponseEntity<Void> delete(@PathVariable Long numeroAbb,
             @PathVariable Long idPagamento,
@@ -76,16 +75,15 @@ public class SottoscrizioneController {
         return ResponseEntity.noContent().build();
     }
 
-    // Visualizza lo storico degli abbonamenti sottoscritti da un atleta
+    // Funzionalità: Recupera lo storico di un utente specifico
     @GetMapping("/storicoUtente/{cf}")
     public List<Sottoscrizione> getStoricoUtente(@PathVariable String cf) {
         return service.getStoricoUtente(cf);
     }
 
-    // Funzionalità: Acquisto di un nuovo abbonamento scegliendolo dal listino
-    // (mensile, ingressi, ecc).
     // Il certificato medico è verificato ma NON bloccante: l'acquisto va sempre
     // a buon fine. Se manca/è scaduto, la risposta include un campo "avviso".
+    // Funzionalità: Acquisto di un nuovo abbonamento scegliendolo dal listino
     @PostMapping("/sottoscrivi")
     public ResponseEntity<SottoscrizioneResponseDTO> sottoscrivi(@RequestBody SottoscrizioneRequest request) {
         Optional<Atleta> atleta = atletaService.findById(request.getAtletaCf());
@@ -101,11 +99,10 @@ public class SottoscrizioneController {
         }
     }
 
-    // Funzionalità: Rinnovo di un abbonamento esistente (SCADUTO o ATTIVO)
-    // Parametro metodo: metodo di pagamento usato per il rinnovo (es.
-    // CARTA_CREDITO)
+    // Parametro metodo: metodo di pagamento usato per il rinnovo (es. CARTA_CREDITO)
     // Crea un nuovo Pagamento e riporta l'Abbonamento ad ATTIVO con date aggiornate
     // Restituisce 404 se l'abbonamento non esiste, 400 se è già CANCELLATO
+    // Funzionalità: Rinnovo di un abbonamento esistente (SCADUTO o ATTIVO)
     @PostMapping("/rinnova/{numeroAbb}")
     public ResponseEntity<Abbonamento> rinnova(@PathVariable Long numeroAbb,
             @RequestParam String metodo) {
@@ -119,9 +116,9 @@ public class SottoscrizioneController {
         }
     }
 
-    // Funzionalità: Disdetta di un abbonamento
     // Imposta lo stato dell'abbonamento a CANCELLATO, impedendo rinnovi futuri
     // e l'aggiornamento automatico notturno
+    // Funzionalità: Disdetta di un abbonamento
     @PostMapping("/disdici/{numeroAbb}")
     public ResponseEntity<Abbonamento> disdici(@PathVariable Long numeroAbb) {
         try {
@@ -133,9 +130,8 @@ public class SottoscrizioneController {
         }
     }
 
-    // Funzionalità: Visualizza tutti gli abbonamenti (attivi e storici) di un
-    // atleta
     // Utile per la dashboard atleta per vedere stato, scadenza e ingressi residui
+    // Funzionalità: Visualizza tutti gli abbonamenti (attivi e storici) di un atleta
     @GetMapping("/abbonamenti/{cf}")
     public ResponseEntity<List<Abbonamento>> getAbbonамentiAtleta(@PathVariable String cf) {
         if (!atletaService.findById(cf).isPresent()) {

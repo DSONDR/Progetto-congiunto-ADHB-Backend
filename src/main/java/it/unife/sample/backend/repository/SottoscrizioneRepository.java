@@ -11,5 +11,10 @@ import it.unife.sample.backend.model.SottoscrizioneId;
 
 @Repository
 public interface SottoscrizioneRepository extends JpaRepository<Sottoscrizione, SottoscrizioneId> {
+
+    // Recupera i record filtrando per AtletaCf
+    // Usato da PagamentoService.getStoricoTransazioni() e da AbbonamentoService.findByAtletaCf()
+    // e da SottoscrizioneService.getStoricoUtente()
     List<Sottoscrizione> findByAtletaCf(String cf);
+
 }

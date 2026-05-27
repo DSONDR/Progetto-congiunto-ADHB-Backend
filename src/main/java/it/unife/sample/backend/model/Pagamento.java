@@ -21,15 +21,19 @@ public class Pagamento {
     
     @Column(name = "Metodo_Pag")
     private String metodoPag; // Carta, Contanti, Bonifico
+    
     @Column(name = "Data_Pag")
     @NotNull(message = "Data obbligatoria")
     private LocalDate dataPag;
+    
     @Column(name = "Stato_Pag")
     @NotBlank(message = "Stato obbligatorio")
     private String statoPag;  // Confermato, In attesa
+    
     @Column(name = "Importo")
     @NotNull(message = "Importo obbligatorio")
     private Double importo;
+    
     @Column(name = "Fattura", unique = true)
     private String fattura;
 }

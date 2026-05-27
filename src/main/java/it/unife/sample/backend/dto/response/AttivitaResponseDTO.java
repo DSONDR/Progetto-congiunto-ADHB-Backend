@@ -22,8 +22,11 @@ public class AttivitaResponseDTO {
     private Double quotaBase;
     private Integer maxPartecipanti;
     private String istruttoreCf;
+    private String nomeIstruttore;
     private String impiantoNome;
     private Long impiantoId;
     private List<LocalDateTime> dateOrari;
     private List<SquadraResponseDTO> squadreAderenti;
+    private String descrizione;
+    private Integer iscritti;
 }

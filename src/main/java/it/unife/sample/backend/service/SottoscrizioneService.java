@@ -15,6 +15,7 @@ import it.unife.sample.backend.model.SottoscrizioneId;
 import it.unife.sample.backend.repository.SottoscrizioneRepository;
 import it.unife.sample.backend.repository.PagamentoRepository;
 import it.unife.sample.backend.repository.AbbonamentoRepository;
+import it.unife.sample.backend.repository.AtletaRepository;
 import it.unife.sample.backend.dto.response.TipoAbbonamentoDTO;
 import it.unife.sample.backend.dto.response.SottoscrizioneResponseDTO;
 import it.unife.sample.backend.service.CertificatoMedicoService;
@@ -28,6 +29,8 @@ public class SottoscrizioneService {
     @Autowired
     private AbbonamentoRepository abbRepo;
     @Autowired
+    private AtletaRepository atletaRepo;
+    @Autowired
     private AbbonamentoService abbonamentoService;
     @Autowired
     private CertificatoMedicoService certService;
@@ -37,27 +40,31 @@ public class SottoscrizioneService {
         return sottRepo.findAll();
     }
 
+    // CRUD base
     public Optional<Sottoscrizione> findById(SottoscrizioneId id) {
         return sottRepo.findById(id);
     }
 
+    // CRUD base
     public Sottoscrizione save(Sottoscrizione sottoscrizione) {
         return sottRepo.save(sottoscrizione);
     }
 
+    // CRUD base
     public void deleteById(SottoscrizioneId id) {
         sottRepo.deleteById(id);
     }
 
-    // Altre funzionalità
+    // --- Altre funzionalità ---
+    
     // Funzionalità Sottoscrizione: Sottoscrive un nuovo abbonamento per l'Atleta.
     // Crea contestualmente il Pagamento, l'Abbonamento con le relative scadenze,
     // e la Sottoscrizione vera e propria che fa da legame.
     // Il certificato medico viene verificato ma NON è bloccante per l'acquisto:
-    // se mancante/scaduto, l'acquisto va a buon fine ma la risposta contiene un
-    // avviso.
+    // se mancante/scaduto, l'acquisto va a buon fine ma la risposta contiene un avviso.
     // Il certificato resta BLOCCANTE nell'uso dell'abbonamento (IscrizioneService).
     @Transactional
+    // Usata in: SottoscrizioneController.sottoscrivi
     public SottoscrizioneResponseDTO sottoscrivi(Atleta atleta, String tipoAbbonamento, String metodo) {
 
         // Verifica certificato medico (non bloccante)
@@ -105,18 +112,26 @@ public class SottoscrizioneService {
         s.setAbbonamento(a);
         s.setPagamento(p);
 
+        // 4. Gamification: +1 punto per 1 euro speso
+        int puntiDaAggiungere = (int) Math.floor(tipo.getPrezzo());
+        int puntiAttuali = (atleta.getPuntiGamification() != null) ? atleta.getPuntiGamification() : 0;
+        atleta.setPuntiGamification(puntiAttuali + puntiDaAggiungere);
+        atletaRepo.save(atleta);
+
         return new SottoscrizioneResponseDTO(sottRepo.save(s), avviso);
     }
 
     // Recupera lo storico delle sottoscrizioni (acquisti) di un Atleta
     // Usato da SottoscrizioneController (GET /storicoUtente/{cf})
     // NB: ritorna Sottoscrizioni (acquisti), non Abbonamenti (stato corrente)
+    // Usata in: SottoscrizioneController.getStoricoUtente
+    // Frontend: Utenti
     public List<Sottoscrizione> getStoricoUtente(String cf) {
         return sottRepo.findByAtletaCf(cf);
     }
 
     // Funzionalità Rinnovo: rinnova un abbonamento SCADUTO o in scadenza per lo
-    // stesso Atleta
+    // stesso Atleta (SottoscrizioneController.rinnova)
     // Crea un nuovo Pagamento e aggiorna le date e lo stato dell'Abbonamento
     // esistente
     @Transactional
@@ -154,11 +169,18 @@ public class SottoscrizioneService {
             a.setIngressiEffettuati(0);
         }
 
+        // Gamification: +1 punto per 1 euro speso
+        int puntiDaAggiungere = (int) Math.floor(tipo.getPrezzo());
+        Atleta atleta = a.getAtleta();
+        int puntiAttuali = (atleta.getPuntiGamification() != null) ? atleta.getPuntiGamification() : 0;
+        atleta.setPuntiGamification(puntiAttuali + puntiDaAggiungere);
+        atletaRepo.save(atleta);
+
         return abbRepo.save(a);
     }
 
     // Funzionalità Disdetta Abbonamento: cancella definitivamente un abbonamento:
-    // imposta stato CANCELLATO
+    // imposta stato CANCELLATO (SottoscrizioneController.disdici)
     // Un abbonamento CANCELLATO non può essere rinnovato e viene ignorato
     // dal task notturno di scadenza automatica
     @Transactional

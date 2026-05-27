@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.*;
 import java.util.ArrayList;
 import java.util.List;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 @Entity
 @Table(name = "SPONSOR")
@@ -13,7 +14,7 @@ import java.util.List;
 public class Sponsor {
     @Id
     @Column(name = "P_IVA", length = 11)
-    private String pIva;
+    private String partitaIva;
     
     @Column(name = "Azienda")
     private String azienda;
@@ -22,25 +23,7 @@ public class Sponsor {
 
     // Relazioni
     @OneToMany(mappedBy = "sponsor")
+    @JsonIgnore		//Per evitare ricorsione nei rapporti bidirezionali
     private List<Sponsorizzazione> sponsorizzazioni = new ArrayList<>();
 
-    // N:M - Sponsor sponsorizza molte squadre
-    @ManyToMany
-    @JoinTable(
-            name = "SPONSORIZZAZIONE",
-            joinColumns = @JoinColumn(name = "P_IVA"),
-            inverseJoinColumns = @JoinColumn(name = "Id_Squadra"),
-            foreignKey = @ForeignKey(name = "FK_SPONSOR_SQUADRA")
-    )
-    private List<Squadra> squadre = new ArrayList<>();
-
-    // N:M - Sponsor sponsorizza molti impianti
-    @ManyToMany
-    @JoinTable(
-            name = "SPONSORIZZAZIONE",
-            joinColumns = @JoinColumn(name = "P_IVA"),
-            inverseJoinColumns = @JoinColumn(name = "Id_Impianto"),
-            foreignKey = @ForeignKey(name = "FK_SPONSOR_IMPIANTO")
-    )
-    private List<Impianto> impianti = new ArrayList<>();
 }

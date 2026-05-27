@@ -3,6 +3,7 @@ package it.unife.sample.backend.model;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import java.time.LocalDate;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
@@ -30,12 +31,10 @@ public class UsaAbb {
     @ManyToOne
     @JoinColumn(name = "Cf")
     @NotNull
+    @JsonIgnore		//Per evitare ricorsione nei rapporti bidirezionali
     private Utente utente;
 
     @Column(name = "Data_Uso")
     @NotNull
     private LocalDate dataUso;
-
-    @Column(name = "Qr_Code")
-    private String qrCode;
 }

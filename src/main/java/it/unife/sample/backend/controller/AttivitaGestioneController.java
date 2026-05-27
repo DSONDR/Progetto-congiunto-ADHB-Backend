@@ -14,23 +14,24 @@ import java.time.LocalDateTime;
  * Controller per la gestione delle attività (SOLO ISTRUTTORE).
  * Consente creazione, modifica, cancellazione e gestione delle sessioni
  * singole.
- *
- * API:
- * - POST /api/attivita-gestione -> crea nuova attività
- * - PUT /api/attivita-gestione/{id} -> modifica attività
- * - DELETE /api/attivita-gestione/{id} -> cancella attività
- * - POST /api/attivita-gestione/{id}/sessioni -> aggiunge una sessione
- * (data/ora) all'attività
- * - DELETE /api/attivita-gestione/{id}/sessioni -> rimuove una sessione
- * specifica dall'attività
+ * Mappato lato frontend in: attivitagestione.service.ts
+ * 
+ * API Esposte:
+ * - POST /api/attivita-gestione -> Crea un nuovo elemento [Allenamenti AllenatoreComponent / Corsi IstruttoreComponent / Gestione AttivitaComponent]
+ * - PUT /api/attivita-gestione/{id} -> Aggiorna un elemento esistente [Allenamenti AllenatoreComponent / Corsi IstruttoreComponent / Gestione AttivitaComponent]
+ * - DELETE /api/attivita-gestione/{id} -> Elimina un elemento [Allenamenti AllenatoreComponent / Corsi IstruttoreComponent / Gestione AttivitaComponent]
+ * - POST /api/attivita-gestione/{id}/sessioni -> Aggiunta di una singola sessione (data/orario) a un'attività [Nessun component specifico]
+ * - DELETE /api/attivita-gestione/{id}/sessioni -> Rimozione di una singola sessione (data/orario) da un'attività [Nessun component specifico]
  */
 @RestController
 @RequestMapping("/api/attivita-gestione")
+@CrossOrigin(origins = "http://localhost:4200")
 public class AttivitaGestioneController {
 
     @Autowired
     private AttivitaService service;
 
+    // Funzionalità: Crea un nuovo elemento
     @PostMapping
     public ResponseEntity<AttivitaResponseDTO> create(@Valid @RequestBody AttivitaRequestDTO dto) {
         // NB: Il frontend dovrà inviare le credenziali istruttore nel JSON
@@ -41,6 +42,7 @@ public class AttivitaGestioneController {
         }
     }
 
+    // Funzionalità: Aggiorna un elemento esistente
     @PutMapping("/{id}")
     public ResponseEntity<AttivitaResponseDTO> update(@PathVariable Long id,
             @Valid @RequestBody AttivitaRequestDTO dto) {
@@ -51,6 +53,7 @@ public class AttivitaGestioneController {
         }
     }
 
+    // Funzionalità: Elimina un elemento
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(@PathVariable Long id) {
         try {
@@ -61,11 +64,9 @@ public class AttivitaGestioneController {
         }
     }
 
-    // Funzionalità: Aggiunta di una singola sessione (data/orario) a un'attività
-    // esistente
-    // Parametro data: data e ora della sessione in formato ISO (es.
-    // 2026-06-01T10:00:00)
+    // Parametro data: data e ora della sessione in formato ISO (2026-06-01T10:00:00)
     // Controlla automaticamente la disponibilità dell'impianto
+    // Funzionalità: Aggiunta di una singola sessione (data/orario) a un'attività
     @PostMapping("/{id}/sessioni")
     public ResponseEntity<AttivitaResponseDTO> addSessione(
             @PathVariable Long id,
@@ -78,10 +79,9 @@ public class AttivitaGestioneController {
             return ResponseEntity.notFound().build();
         }
     }
-
-    // Funzionalità: Rimozione di una singola sessione (data/orario) da un'attività
-    // esistente
+    
     // Parametro data: data e ora della sessione da rimuovere (formato ISO)
+    // Funzionalità: Rimozione di una singola sessione (data/orario) da un'attività
     @DeleteMapping("/{id}/sessioni")
     public ResponseEntity<AttivitaResponseDTO> removeSessione(
             @PathVariable Long id,

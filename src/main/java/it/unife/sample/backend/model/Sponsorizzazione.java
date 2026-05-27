@@ -19,7 +19,7 @@ public class Sponsorizzazione {
     private Long idSponsorizzazione;
 
     @NotNull
-    @ManyToOne
+    @ManyToOne(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
     @JoinColumn(name = "P_IVA")
     private Sponsor sponsor;
 

@@ -9,7 +9,9 @@ import lombok.AllArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class SottoscrizioneId implements Serializable {
-    private Long numeroAbb;
-    private Long idPagamento;
-    private String cf;
+    private Long abbonamento;
+    private Long pagamento;
+    private String atleta;
 }
+
+//EntitàId.java, richiesta da JPA per le chiavi composte
