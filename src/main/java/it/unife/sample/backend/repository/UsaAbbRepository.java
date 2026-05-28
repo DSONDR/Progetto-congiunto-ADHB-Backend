@@ -20,6 +20,10 @@ public interface UsaAbbRepository extends JpaRepository<UsaAbb, UsaAbbId> {
     // Usato dal sistema per logiche interne di gestione
     long countByAbbonamentoNumeroAbb(Long numeroAbb);
 
+    // Recupera i record filtrando per AbbonamentoNumeroAbb
+    // Usato da SottoscrizioneService per cancellare le iscrizioni quando si disdice l'abbonamento
+    List<UsaAbb> findByAbbonamentoNumeroAbb(Long numeroAbb);
+
     // Recupera i record filtrando per UtenteCf
     // Usato da SottoscrizioneService.sottoscrivi() e da
     // PagamentoService.getStoricoTransazioni()

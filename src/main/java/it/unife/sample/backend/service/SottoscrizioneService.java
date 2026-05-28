@@ -16,6 +16,8 @@ import it.unife.sample.backend.repository.SottoscrizioneRepository;
 import it.unife.sample.backend.repository.PagamentoRepository;
 import it.unife.sample.backend.repository.AbbonamentoRepository;
 import it.unife.sample.backend.repository.AtletaRepository;
+import it.unife.sample.backend.repository.UsaAbbRepository;
+import it.unife.sample.backend.model.UsaAbb;
 import it.unife.sample.backend.dto.response.TipoAbbonamentoDTO;
 import it.unife.sample.backend.dto.response.SottoscrizioneResponseDTO;
 import it.unife.sample.backend.service.CertificatoMedicoService;
@@ -34,6 +36,8 @@ public class SottoscrizioneService {
     private AbbonamentoService abbonamentoService;
     @Autowired
     private CertificatoMedicoService certService;
+    @Autowired
+    private UsaAbbRepository usaAbbRepo;
 
     // CRUD base
     public List<Sottoscrizione> findAll() {
@@ -50,18 +54,59 @@ public class SottoscrizioneService {
         return sottRepo.save(sottoscrizione);
     }
 
-    // CRUD base
+    // CRUD base, usato anche per la disdetta --> Decurta i punti se necessario
+    @Transactional
+    public Integer deleteByIdAndReturnPoints(SottoscrizioneId id) {
+        Integer nuoviPunti = null;
+        // Recupera la sottoscrizione per ottenere l'abbonamento
+        Sottoscrizione s = sottRepo.findById(id).orElse(null);
+        if (s != null) {
+            Abbonamento a = s.getAbbonamento();
+            if (a != null) {
+                // Decurtazione punti Gamification
+                TipoAbbonamentoDTO tipo = abbonamentoService.getDettagliTipo(a.getTipoAbb()).orElse(null);
+                if (tipo != null && !"PUNTI".equalsIgnoreCase(s.getPagamento().getMetodoPag())) {
+                    Atleta atleta = a.getAtleta();
+                    int puntiDaTogliere = (int) Math.floor(tipo.getPrezzo());
+                    int puntiAttuali = (atleta.getPuntiGamification() != null) ? atleta.getPuntiGamification() : 0;
+                    nuoviPunti = Math.max(0, puntiAttuali - puntiDaTogliere);
+                    atleta.setPuntiGamification(nuoviPunti);
+                    atletaRepo.save(atleta);
+                } else {
+                    nuoviPunti = a.getAtleta().getPuntiGamification();
+                }
+
+                // 1. Sposta l'abbonamento nello storico impostandolo a CANCELLATO
+                a.setStatoAbb("CANCELLATO");
+                abbRepo.save(a);
+
+                // 2. Cancella tutte le iscrizioni agli eventi effettuate con questo abbonamento
+                List<UsaAbb> usi = usaAbbRepo.findByAbbonamentoNumeroAbb(a.getNumeroAbb());
+                if (!usi.isEmpty()) {
+                    usaAbbRepo.deleteAll(usi);
+                }
+            }
+            // 3. Cancella la sottoscrizione (facoltativo, ma manteniamo la coerenza col
+            // passato)
+            sottRepo.deleteById(id);
+        }
+        return nuoviPunti;
+    }
+
+    // Manteniamo deleteById per retrocompatibilità (se usato da altri)
+    @Transactional
     public void deleteById(SottoscrizioneId id) {
-        sottRepo.deleteById(id);
+        deleteByIdAndReturnPoints(id);
     }
 
     // --- Altre funzionalità ---
-    
+
     // Funzionalità Sottoscrizione: Sottoscrive un nuovo abbonamento per l'Atleta.
     // Crea contestualmente il Pagamento, l'Abbonamento con le relative scadenze,
     // e la Sottoscrizione vera e propria che fa da legame.
     // Il certificato medico viene verificato ma NON è bloccante per l'acquisto:
-    // se mancante/scaduto, l'acquisto va a buon fine ma la risposta contiene un avviso.
+    // se mancante/scaduto, l'acquisto va a buon fine ma la risposta contiene un
+    // avviso.
     // Il certificato resta BLOCCANTE nell'uso dell'abbonamento (IscrizioneService).
     @Transactional
     // Usata in: SottoscrizioneController.sottoscrivi
@@ -113,7 +158,7 @@ public class SottoscrizioneService {
         s.setPagamento(p);
 
         // 4. Gamification: +1 punto per 1 euro speso
-        // Evitiamo di assegnare nuovi punti se l'utente sta acquistando l'abbonamento 
+        // Evitiamo di assegnare nuovi punti se l'utente sta acquistando l'abbonamento
         // spendendo i suoi punti pregressi (metodo = "PUNTI")
         if (!"PUNTI".equalsIgnoreCase(metodo)) {
             int puntiDaAggiungere = (int) Math.floor(tipo.getPrezzo());

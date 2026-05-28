@@ -61,17 +61,17 @@ public class SottoscrizioneController {
     }
 
     // Cancella una sottoscrizione specifica (cf, numeroAbb, idPagamento)
-    // Funzionalità: Elimina un elemento
+    // Funzionalità: Elimina un elemento e restituisce il nuovo totale dei punti gamification
     @DeleteMapping("/{numeroAbb}/{idPagamento}/{cf}")
-    public ResponseEntity<Void> delete(@PathVariable Long numeroAbb,
+    public ResponseEntity<Integer> delete(@PathVariable Long numeroAbb,
             @PathVariable Long idPagamento,
             @PathVariable String cf) {
         SottoscrizioneId id = new SottoscrizioneId(numeroAbb, idPagamento, cf);
         if (!service.findById(id).isPresent()) {
             return ResponseEntity.notFound().build();
         }
-        service.deleteById(id);
-        return ResponseEntity.noContent().build();
+        Integer nuoviPunti = service.deleteByIdAndReturnPoints(id);
+        return ResponseEntity.ok(nuoviPunti);
     }
 
     // Funzionalità: Recupera lo storico di un utente specifico
