@@ -17,10 +17,10 @@ import java.util.*;
  * Mappato lato frontend in: abbonamento.service.ts
  * 
  * API Esposte:
- * - GET /api/abbonamenti -> Crud base [Nessun component specifico]
- * - GET /api/abbonamenti/utente/{cf} -> Recupera lo storico di un utente specifico [Nessun component specifico]
- * - GET /api/abbonamenti/tipi -> Visualizza il listino dei tipi di abbonamento [Nessun component specifico]
- * - GET /api/abbonamenti/{id} -> Dettaglio singolo abbonamento venduto [Nessun component specifico]
+ * - GET /api/abbonamenti -> Crud base [Admin Dashboard]
+ * - GET /api/abbonamenti/utente/{cf} -> Recupera lo storico di un utente specifico [Admin Dashboard]
+ * - GET /api/abbonamenti/tipi -> Visualizza il listino dei tipi di abbonamento [AbbonamentiMenuComponent]
+ * - GET /api/abbonamenti/{id} -> Dettaglio singolo abbonamento venduto [Admin Dashboard]
  */
 @RestController
 @RequestMapping("/api/abbonamenti")

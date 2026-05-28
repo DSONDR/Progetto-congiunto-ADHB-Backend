@@ -23,12 +23,11 @@ import java.util.*;
  * API Esposte:
  * - GET /api/sottoscrizioni -> Recupera tutte le sottoscrizioni (per tutti) [EventiComponent]
  * - GET /api/sottoscrizioni/{numeroAbb}/{idPagamento}/{cf} -> Recupera una sottoscrizione specifica (cf, numeroAbb, idPagamento) [EventiComponent]
- * - DELETE /api/sottoscrizioni/{numeroAbb}/{idPagamento}/{cf} -> Elimina un elemento [Nessun component specifico]
- * - GET /api/sottoscrizioni/storicoUtente/{cf} -> Recupera lo storico di un utente specifico [Nessun component specifico]
- * - POST /api/sottoscrizioni/sottoscrivi -> Acquisto di un nuovo abbonamento scegliendolo dal listino [Nessun component specifico]
- * - POST /api/sottoscrizioni/rinnova/{numeroAbb} -> Rinnovo di un abbonamento esistente (SCADUTO o ATTIVO) [Nessun component specifico]
- * - POST /api/sottoscrizioni/disdici/{numeroAbb} -> Disdetta di un abbonamento [AbbonamentiComponent]
- * - GET /api/sottoscrizioni/abbonamenti/{cf} -> Visualizza tutti gli abbonamenti (attivi e storici) di un [Nessun component specifico]
+ * - DELETE /api/sottoscrizioni/{numeroAbb}/{idPagamento}/{cf} -> Elimina un elemento [AbbonamentiComponent]
+ * - GET /api/sottoscrizioni/storicoUtente/{cf} -> Recupera lo storico di un utente specifico [AbbonamentiComponent]
+ * - POST /api/sottoscrizioni/sottoscrivi -> Acquisto di un nuovo abbonamento scegliendolo dal listino [AbbonamentiMenuComponent, AttivitaComponent]
+ * - POST /api/sottoscrizioni/rinnova/{numeroAbb} -> Rinnovo di un abbonamento esistente (SCADUTO o ATTIVO) [AbbonamentiComponent, Area Personale]
+ * - GET /api/sottoscrizioni/abbonamenti/{cf} -> Visualizza tutti gli abbonamenti (attivi e storici) di un [AbbonamentiComponent, AbbonamentiMenuComponent]
  */
 @RestController
 @RequestMapping("/api/sottoscrizioni")
@@ -109,20 +108,6 @@ public class SottoscrizioneController {
         try {
             Abbonamento rinnovato = service.rinnova(numeroAbb, metodo);
             return ResponseEntity.ok(rinnovato);
-        } catch (IllegalStateException e) {
-            return ResponseEntity.badRequest().build();
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.notFound().build();
-        }
-    }
-
-    // Imposta lo stato dell'abbonamento a CANCELLATO, impedendo rinnovi futuri
-    // e l'aggiornamento automatico notturno
-    // Funzionalità: Disdetta di un abbonamento
-    @PostMapping("/disdici/{numeroAbb}")
-    public ResponseEntity<Abbonamento> disdici(@PathVariable Long numeroAbb) {
-        try {
-            return ResponseEntity.ok(service.disdici(numeroAbb));
         } catch (IllegalStateException e) {
             return ResponseEntity.badRequest().build();
         } catch (IllegalArgumentException e) {

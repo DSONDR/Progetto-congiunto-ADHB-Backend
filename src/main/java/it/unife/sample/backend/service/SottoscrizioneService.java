@@ -113,10 +113,14 @@ public class SottoscrizioneService {
         s.setPagamento(p);
 
         // 4. Gamification: +1 punto per 1 euro speso
-        int puntiDaAggiungere = (int) Math.floor(tipo.getPrezzo());
-        int puntiAttuali = (atleta.getPuntiGamification() != null) ? atleta.getPuntiGamification() : 0;
-        atleta.setPuntiGamification(puntiAttuali + puntiDaAggiungere);
-        atletaRepo.save(atleta);
+        // Evitiamo di assegnare nuovi punti se l'utente sta acquistando l'abbonamento 
+        // spendendo i suoi punti pregressi (metodo = "PUNTI")
+        if (!"PUNTI".equalsIgnoreCase(metodo)) {
+            int puntiDaAggiungere = (int) Math.floor(tipo.getPrezzo());
+            int puntiAttuali = (atleta.getPuntiGamification() != null) ? atleta.getPuntiGamification() : 0;
+            atleta.setPuntiGamification(puntiAttuali + puntiDaAggiungere);
+            atletaRepo.save(atleta);
+        }
 
         return new SottoscrizioneResponseDTO(sottRepo.save(s), avviso);
     }
@@ -176,23 +180,6 @@ public class SottoscrizioneService {
         atleta.setPuntiGamification(puntiAttuali + puntiDaAggiungere);
         atletaRepo.save(atleta);
 
-        return abbRepo.save(a);
-    }
-
-    // Funzionalità Disdetta Abbonamento: cancella definitivamente un abbonamento:
-    // imposta stato CANCELLATO (SottoscrizioneController.disdici)
-    // Un abbonamento CANCELLATO non può essere rinnovato e viene ignorato
-    // dal task notturno di scadenza automatica
-    @Transactional
-    public Abbonamento disdici(Long numeroAbb) {
-        Abbonamento a = abbRepo.findById(numeroAbb)
-                .orElseThrow(() -> new IllegalArgumentException("Abbonamento non trovato: " + numeroAbb));
-
-        if ("CANCELLATO".equalsIgnoreCase(a.getStatoAbb())) {
-            throw new IllegalStateException("Abbonamento già cancellato");
-        }
-
-        a.setStatoAbb("CANCELLATO");
         return abbRepo.save(a);
     }
 }
